@@ -50,7 +50,7 @@ import type {
   TracedCall,
 } from './callLifecycle.js';
 import type { CompactionAttrs } from './genaiSpans.js';
-import { ATTR, assistantOutputMessages, snippet } from './genaiSpans.js';
+import { ATTR, assistantMessages, snippet } from './genaiSpans.js';
 import type { SpanParent } from './genaiSpans.js';
 import { parseSessionFd } from './parser.js';
 import { Session } from './session.js';
@@ -848,26 +848,22 @@ export class HookHandler {
       input.agent_type,
       seen,
     );
-    const text = mergeSubagentOutput(transcript.text, input.last_assistant_message);
+    const outputText = mergeSubagentOutput(transcript.text, input.last_assistant_message);
 
     if (match.kind === 'found') {
       if (transcript.model) {
         match.call.span.setAttributes({ [ATTR.RESPONSE_MODEL]: transcript.model });
       }
-      if (!match.call.toolUseId && text) {
-        match.call.span.setAttributes({
-          [ATTR.OUTPUT_MESSAGES]: assistantOutputMessages([text]),
-        });
+      if (!match.call.toolUseId && outputText) {
+        match.call.span.record({ outputMessages: assistantMessages([outputText]) });
       }
       recordAgentStop(session.calls, match);
     } else if (recovered) {
       if (transcript.model) {
         recovered.span.setAttributes({ [ATTR.RESPONSE_MODEL]: transcript.model });
       }
-      if (text) {
-        recovered.span.setAttributes({
-          [ATTR.OUTPUT_MESSAGES]: assistantOutputMessages([text]),
-        });
+      if (outputText) {
+        recovered.span.record({ outputMessages: assistantMessages([outputText]) });
       }
     }
 

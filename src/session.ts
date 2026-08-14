@@ -9,7 +9,7 @@ import * as tracing from '@coreweave/forge-sdk/agentlens/tracing';
 import { emitChatSpans } from './chatSpans.js';
 import {
   ATTR,
-  assistantOutputMessages,
+  assistantMessages,
   buildIntegrationAttrs,
   parseTimestamp,
   setCompactionAttrs,
@@ -461,10 +461,12 @@ export class Session {
       userMessage: turn.userText,
     });
 
-    const text = responses.flatMap(response => extractAssistantTextBlocks(response.content));
-    if (!text.length && options.lastMessage) text.push(options.lastMessage);
+    const outputTexts = responses.flatMap(response => extractAssistantTextBlocks(response.content));
+    if (!outputTexts.length && options.lastMessage) outputTexts.push(options.lastMessage);
+    if (outputTexts.length) {
+      turn.span.record({ outputMessages: assistantMessages(outputTexts) });
+    }
     const attributes: Attributes = {};
-    if (text.length) attributes[ATTR.OUTPUT_MESSAGES] = assistantOutputMessages(text);
     const finishReasons = responses
       .map(response => response.finishReason)
       .filter((reason): reason is string => Boolean(reason));

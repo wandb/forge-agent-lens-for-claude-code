@@ -5,7 +5,7 @@
 // Attribute-key constants and formatting helpers typed against the Forge SDK.
 
 import type { Attributes } from '@opentelemetry/api';
-import type { MessagePart, SubAgent, Tool, Turn, Usage } from '@coreweave/forge-sdk/agentlens/tracing';
+import type { Message, MessagePart, SubAgent, Tool, Turn, Usage } from '@coreweave/forge-sdk/agentlens/tracing';
 import { isTextBlock, isThinkingBlock, isRedactedThinkingBlock, isToolUseBlock } from './parser.js';
 import type { UsageSummary } from './parser.js';
 
@@ -109,10 +109,10 @@ export function jsonStr(v: unknown): string {
   }
 }
 
-/** `gen_ai.output.messages` JSON for plain assistant text(s), the shape used on
- *  turn and subagent `invoke_agent` spans (chat spans carry parts instead). */
-export function assistantOutputMessages(texts: string[]): string {
-  return jsonStr(texts.map((content) => ({ role: 'assistant', content })));
+/** Plain assistant messages for turn and subagent `invoke_agent` spans;
+ *  the SDK serializes them at `end()` (chat spans carry parts instead). */
+export function assistantMessages(texts: string[]): Message[] {
+  return texts.map((content) => ({ role: 'assistant', content }));
 }
 
 /** Parse an ISO timestamp; returns undefined for missing or unparseable input. */
