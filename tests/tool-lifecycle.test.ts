@@ -343,7 +343,7 @@ test('SessionEnd orphans unfinished tools before closing their turn', async (t) 
   const [tool] = toolSpans(spans);
   const [turn] = turnSpans(spans);
   assert.ok(tool && turn);
-  assert.equal(tool.attributes[ATTR.WEAVE_ORPHAN_REASON], 'session_ended');
+  assert.equal(tool.attributes[ATTR.FORGE_ORPHAN_REASON], 'session_ended');
   assert.equal(tool.status.code, 2);
   assert.equal(spanParentId(tool), turn.spanContext().spanId);
   assert.ok(spans.indexOf(tool) < spans.indexOf(turn), 'child exports before its parent');
@@ -511,11 +511,11 @@ test('a legacy next prompt orphans its open tool and starts a clean turn', async
   const nextTool = toolSpans(spans).find(span =>
     span.attributes['gen_ai.tool.call.id'] === 'next-tool');
   assert.ok(firstTurn && secondTurn && oldTool && nextTool);
-  assert.equal(oldTool.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(oldTool.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
   assert.equal(oldTool.attributes['gen_ai.tool.call.result'], undefined);
   assert.equal(spanParentId(oldTool), firstTurn.spanContext().spanId);
   assert.equal(nextTool.attributes['gen_ai.tool.call.result'], 'next result');
-  assert.equal(nextTool.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(nextTool.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(spanParentId(nextTool), secondTurn.spanContext().spanId);
 });
 

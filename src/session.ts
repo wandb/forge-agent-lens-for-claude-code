@@ -120,7 +120,7 @@ export class Session {
     this.conversation = tracing.startConversation({
       conversationId,
       agentName: options.agentName,
-      attributes: { ...integrationAttrs, [ATTR.WEAVE_PLUGIN_VERSION]: VERSION },
+      attributes: { ...integrationAttrs, [ATTR.FORGE_PLUGIN_VERSION]: VERSION },
     });
   }
 
@@ -333,8 +333,8 @@ export class Session {
       startTime: cursor.startTime,
     });
     span.setAttributes({
-      [ATTR.WEAVE_CWD]: this.cwd,
-      [ATTR.WEAVE_SOURCE]: this.source,
+      [ATTR.FORGE_CWD]: this.cwd,
+      [ATTR.FORGE_SOURCE]: this.source,
     });
     const turn: TurnTrace = {
       kind: 'turn',
@@ -469,7 +469,7 @@ export class Session {
       .map(response => response.finishReason)
       .filter((reason): reason is string => Boolean(reason));
     if (finishReasons.length) attributes[ATTR.RESPONSE_FINISH_REASONS] = finishReasons;
-    if (options.orphanReason) attributes[ATTR.WEAVE_ORPHAN_REASON] = options.orphanReason;
+    if (options.orphanReason) attributes[ATTR.FORGE_ORPHAN_REASON] = options.orphanReason;
     if (Object.keys(attributes).length) turn.span.setAttributes(attributes);
 
     const model = responses.filter(response => response.model).at(-1)?.model;

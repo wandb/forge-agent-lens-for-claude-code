@@ -339,8 +339,8 @@ test('restart recovery keeps a later Agent call separate', async (t) => {
   assert.equal(spanParentId(recovered), turns[0].spanContext().spanId);
   assert.equal(spanParentId(chat), recovered.spanContext().spanId);
   assert.equal(spanParentId(later), turns[0].spanContext().spanId);
-  assert.equal(recovered.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
-  assert.equal(later.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(recovered.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
+  assert.equal(later.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(
     recovered.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([{ role: 'assistant', content: 'done' }]),
@@ -391,7 +391,7 @@ test('a Stop-first recovered Agent adopts its late PostToolUse', async (t) => {
   assert.equal(agents.length, 1, 'one Agent span, not a duplicate');
   assert.equal(agents[0].attributes[ATTR.AGENT_ID], agentId);
   assert.equal(
-    agents[0].attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
+    agents[0].attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
     'agent-call',
     'the recovered span adopts the tool_use_id',
   );
@@ -459,7 +459,7 @@ test('ambiguous Stop-first Agent candidates are not guessed', async (t) => {
     span.attributes[ATTR.OPERATION_NAME] === 'invoke_agent'
     && span.attributes[ATTR.AGENT_NAME] === 'Explore');
   const adopted = agents.filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'agent-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'agent-call');
   assert.equal(agents.length, 3, 'both markers survive plus the unjoined result');
   assert.equal(adopted.length, 1, 'the tool_use_id is not attached to a guess');
   assert.equal(adopted[0].attributes[ATTR.AGENT_ID], undefined, 'and not to either marker');
@@ -510,5 +510,5 @@ test('a Stop-first recovered Agent adopts a late Post whose dispatch is in an ea
     && span.attributes[ATTR.AGENT_NAME] === 'Explore');
   assert.equal(agents.length, 1, 'one Agent span even across differing turns');
   assert.equal(agents[0].attributes[ATTR.AGENT_ID], agentId);
-  assert.equal(agents[0].attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID], 'agent-call');
+  assert.equal(agents[0].attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID], 'agent-call');
 });

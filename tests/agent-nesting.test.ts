@@ -109,16 +109,16 @@ test('a nested Agent result cannot claim a matching root recovery', async (t) =>
   const rootAgent = spans.find(span => span.attributes[ATTR.AGENT_ID] === rootAgentId);
   const owner = spans.find(span => span.attributes[ATTR.AGENT_ID] === ownerAgentId);
   const nested = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-agent-result');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-agent-result');
   assert.ok(rootAgent && owner && nested);
   assert.equal(spanParentId(nested), owner.spanContext().spanId);
-  assert.equal(rootAgent.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID], undefined);
+  assert.equal(rootAgent.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID], undefined);
   assert.equal(
     nested.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([{ role: 'assistant', content: 'nested result' }]),
   );
   assert.equal(spans.some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'unowned-agent-result'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'unowned-agent-result'), false);
 });
 
 test('unknown agent_id is rejected instead of flattened under the turn', async (t) => {

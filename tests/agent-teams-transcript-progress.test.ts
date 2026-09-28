@@ -104,7 +104,7 @@ test('provider progress advances within one turn and ignores non-provider growth
   await flushWeave();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
+    String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
       .startsWith('response-progress-'));
   assert.equal(agents.length, 2);
   assert.ok(exporter.getFinishedSpans().some(span =>
@@ -147,9 +147,9 @@ test('a stale idle with only non-provider growth cannot confirm the next named A
   await flushWeave();
 
   const ordinary = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-after-stale-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-after-stale-call');
   assert.ok(ordinary);
-  assert.equal(ordinary.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(ordinary.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-after-stale-msg'));
 });
@@ -184,7 +184,7 @@ test('idle history churn cannot evict persistent transcript progress', async (t)
   await flushWeave();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'progress-eviction-call-2'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'progress-eviction-call-2'), false);
 });
 
 test('file aliases cannot replay persistent transcript output', async (t) => {
@@ -207,7 +207,7 @@ test('file aliases cannot replay persistent transcript output', async (t) => {
   await flushWeave();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'progress-alias-call-2'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'progress-alias-call-2'), false);
   assert.equal(exporter.getFinishedSpans().filter(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'progress-alias-msg').length, 1);
 });
@@ -236,7 +236,7 @@ test('a physical transcript cannot be relabeled to replay its output', async (t)
   await flushWeave();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'progress-relabel-call-2'), false);
   assert.equal(exporter.getFinishedSpans().filter(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'progress-relabel-msg').length, 1);
@@ -274,7 +274,7 @@ test('persistent progress survives many other teammate transcripts', async (t) =
   await flushWeave();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'progress-capacity-persistent-2'), false);
 
   persistent.append(
@@ -286,7 +286,7 @@ test('persistent progress survives many other teammate transcripts', async (t) =
   await daemon.routeEvent(persistentIdle);
   await flushWeave();
   const resumed = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'progress-capacity-persistent-2');
   assert.ok(resumed);
   assert.equal(
@@ -305,7 +305,7 @@ test('persistent progress survives many other teammate transcripts', async (t) =
   });
   await flushWeave();
   const freshAgent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'progress-capacity-new-call');
   assert.ok(freshAgent);
   assert.equal(
@@ -336,7 +336,7 @@ test('one persistent teammate session completes twice only after transcript grow
   await flushWeave();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]).startsWith('persistent-'));
+    String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]).startsWith('persistent-'));
   assert.equal(agents.length, 2);
   assert.deepEqual(agents.map(agent => agent.attributes[ATTR.OUTPUT_MESSAGES]).sort(), [
     JSON.stringify([{ role: 'assistant', content: 'first result' }]),
@@ -383,16 +383,16 @@ test('each idle reads only the persistent transcript state it observed', async (
   await flushWeave();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
+    String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
       .startsWith('boundary-call-'));
   assert.deepEqual(Object.fromEntries(agents.map(agent => [
-    agent.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
+    agent.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
     agent.attributes[ATTR.OUTPUT_MESSAGES],
   ])), {
     'boundary-call-1': JSON.stringify([{ role: 'assistant', content: 'first result' }]),
     'boundary-call-2': JSON.stringify([{ role: 'assistant', content: 'second result' }]),
   });
-  assert.deepEqual(agents.map(agent => agent.attributes[ATTR.WEAVE_ORPHAN_REASON]), [
+  assert.deepEqual(agents.map(agent => agent.attributes[ATTR.FORGE_ORPHAN_REASON]), [
     undefined,
     undefined,
   ]);

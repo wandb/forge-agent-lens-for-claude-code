@@ -40,7 +40,7 @@ test('subagent topology: marker owns its chat, tools, identity, and canonical re
   assert.equal(spanParentId(chat), agent.spanContext().spanId);
   assert.equal(spanParentId(tool), agent.spanContext().spanId);
   assert.equal(agent.attributes[ATTR.AGENT_ID], agentId);
-  assert.equal(agent.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID], 'agent-call');
+  assert.equal(agent.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID], 'agent-call');
   assert.equal(agent.attributes[ATTR.OUTPUT_MESSAGES], JSON.stringify([
     { role: 'assistant', content: 'canonical result' },
   ]));
@@ -48,7 +48,7 @@ test('subagent topology: marker owns its chat, tools, identity, and canonical re
   assert.equal(chat.attributes[ATTR.USAGE_INPUT_TOKENS], 120);
   for (const span of [agent, chat, tool]) {
     assert.equal(span.attributes[ATTR.CONVERSATION_ID], sid);
-    assert.equal(span.attributes[ATTR.WEAVE_INTEGRATION_NAME], 'weave-claude-code');
+    assert.equal(span.attributes[ATTR.FORGE_INTEGRATION_NAME], 'forge-claude-code');
   }
 });
 
@@ -82,8 +82,8 @@ test('an Agent stays open until its last nested tool completes', async (t) => {
   const tool = spans.find(span => span.attributes['gen_ai.tool.call.id'] === 'late-read');
   assert.ok(agent && tool);
   assert.equal(spanParentId(tool), agent.spanContext().spanId);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
-  assert.equal(tool.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
+  assert.equal(tool.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
 });
 
 for (const { title, label, toolInput, displayName } of [
@@ -204,7 +204,7 @@ test('terminal-first Agent without subtype learns its lifecycle type, not its na
   assert.ok(agent && chat);
   assert.equal(agent.attributes[ATTR.AGENT_ID], agentId);
   assert.equal(
-    agent.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
+    agent.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
     'terminal-agent-call',
   );
   assert.equal(

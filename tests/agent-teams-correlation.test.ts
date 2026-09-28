@@ -74,7 +74,7 @@ test('metadata correlation accepts a large injected first record', async (t) => 
   await flushWeave();
 
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'large-metadata-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'large-metadata-call');
   assert.ok(agent);
   assert.equal(
     agent.attributes[ATTR.OUTPUT_MESSAGES],
@@ -146,7 +146,7 @@ test('a matching prompt alone does not swallow an unrelated lifecycle', async (t
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => span.attributes[ATTR.AGENT_ID] === agentId), true);
   assert.ok(spans.some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'alias-team-call'));
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'alias-team-call'));
 });
 
 test('idle receipt snapshots a metadata-selected transcript', async (t) => {
@@ -210,10 +210,10 @@ test('idle receipt snapshots a metadata-selected transcript', async (t) => {
   await flushWeave();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
+    String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
       .startsWith('metadata-boundary-call-'));
   assert.deepEqual(Object.fromEntries(agents.map(agent => [
-    agent.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
+    agent.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
     agent.attributes[ATTR.OUTPUT_MESSAGES],
   ])), {
     'metadata-boundary-call-1': JSON.stringify([{ role: 'assistant', content: 'first result' }]),
@@ -261,11 +261,11 @@ test('ambiguous exact transcript evidence cannot fall through to a weaker owner'
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'ambiguous-weak-msg'), false);
   const agents = spans.filter(span =>
-    String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
+    String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
       .startsWith('ambiguous-owner-'));
   assert.equal(agents.length, 2);
   for (const agent of agents) {
-    assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], 'daemon_shutdown');
+    assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], 'daemon_shutdown');
   }
 });
 
@@ -310,5 +310,5 @@ test('completed lifecycle history remains scoped to its exact team', async (t) =
   assert.ok(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'team-y-msg'));
   const teamY = spans.find(span => span.attributes[ATTR.AGENT_ID] === agentId);
   assert.ok(teamY);
-  assert.equal(teamY.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(teamY.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
 });

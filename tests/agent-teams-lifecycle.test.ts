@@ -70,12 +70,12 @@ test('same-name respawns consume distinct transcripts and duplicate idle is idem
   const spans = exporter.getFinishedSpans();
   const agents = spans.filter(span =>
     ['team-call-1', 'team-call-2'].includes(
-      String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]),
+      String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]),
     ));
   assert.equal(agents.length, 2);
   assert.deepEqual(
     Object.fromEntries(agents.map(span => [
-      span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
+      span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
       span.attributes[ATTR.OUTPUT_MESSAGES],
     ])),
     {
@@ -178,7 +178,7 @@ test('current generic named Agent payload is traced as an implicit-team dispatch
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.AGENT_NAME], MEMBER);
   assert.equal(agent.attributes[ATTR.OUTPUT_MESSAGES], JSON.stringify([
@@ -213,10 +213,10 @@ test('a tentative named Agent failure still accepts its ordinary Stop transcript
   await flushWeave();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-failed-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-failed-call');
   assert.equal(agents.length, 1);
   assert.equal(agents[0].attributes[ATTR.ERROR_TYPE], 'AgentError');
-  assert.equal(agents[0].attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agents[0].attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-failed-msg'));
 });
@@ -240,7 +240,7 @@ test('agent-setting without a team remains an ordinary recovered lifecycle', asy
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.AGENT_ID] === agentId);
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-setting-msg'));
 });
@@ -289,7 +289,7 @@ test('an ordinary child inside a teammate session remains an ordinary Agent', as
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.AGENT_ID] === agentId);
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-team-child-msg'));
 });
@@ -325,7 +325,7 @@ test('name-only Team alias remains the display name when lifecycle type differs'
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'alias-type-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'alias-type-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.AGENT_NAME], 'instance-alias');
   assert.equal(agent.attributes[ATTR.AGENT_ID], agentId);
@@ -372,7 +372,7 @@ test('restart-first name-only Team learns lifecycle type and completes on idle',
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-name-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-name-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.AGENT_NAME], 'instance-alias');
   assert.equal(agent.attributes[ATTR.AGENT_ID], agentId);
@@ -448,7 +448,7 @@ test('completed Team alias suppresses a delayed lifecycle with its recorded type
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => span.attributes[ATTR.AGENT_ID] === delayedAgentId), false);
   assert.equal(spans.filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'delayed-alias-call').length, 1);
   assert.equal(spans.filter(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'delayed-alias-msg').length, 1);
@@ -477,7 +477,7 @@ test('PermissionDenied closes an explicit Team and its deferred root once', asyn
 
   const spans = exporter.getFinishedSpans();
   const agents = spans.filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-team-call');
   const roots = spans.filter(span =>
     span.attributes[ATTR.AGENT_NAME] === 'claude-code');
   assert.equal(agents.length, 1);

@@ -62,7 +62,7 @@ test('explicit team dispatch completes on TeammateIdle', async (t) => {
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'team-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.OUTPUT_MESSAGES], JSON.stringify([
     { role: 'assistant', content: 'review result' },
@@ -70,7 +70,7 @@ test('explicit team dispatch completes on TeammateIdle', async (t) => {
   assert.ok(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'team-msg'));
   assert.ok(spans.some(span =>
     span.attributes[ATTR.AGENT_NAME] === MEMBER
-    && span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === undefined));
+    && span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === undefined));
 });
 
 test('an ordinary named background Agent completes through SubagentStop', async (t) => {
@@ -105,9 +105,9 @@ test('an ordinary named background Agent completes through SubagentStop', async 
   await flushWeave();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-named-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-named-call');
   assert.equal(agents.length, 1);
-  assert.equal(agents[0].attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agents[0].attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-named-msg'));
 });
@@ -124,16 +124,16 @@ test('an explicit Team call survives SessionEnd', async (t) => {
   const internals = daemon as unknown as { hasInFlightWork(): boolean };
   assert.equal(internals.hasInFlightWork(), true);
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call'), false);
 
   await idle(t, daemon, 'session-end', 'inspection result', 'session-end-msg');
   await flushWeave();
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(internals.hasInFlightWork(), false);
 });
 
@@ -168,16 +168,16 @@ test('SessionEnd closes nested tools before retaining their Team Agent', async (
   const nestedTool = exporter.getFinishedSpans().find(span =>
     span.attributes['gen_ai.tool.call.id'] === 'nested-team-read');
   assert.ok(nestedTool);
-  assert.equal(nestedTool.attributes[ATTR.WEAVE_ORPHAN_REASON], 'session_ended');
+  assert.equal(nestedTool.attributes[ATTR.FORGE_ORPHAN_REASON], 'session_ended');
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-team-call'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-team-call'), false);
 
   await idle(t, daemon, 'nested-session-end', 'nested result', 'nested-team-msg');
   await flushWeave();
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-team-call');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(spanParentId(nestedTool), agent.spanContext().spanId);
 });
 
@@ -213,9 +213,9 @@ test('SessionEnd waits for an ordinary named Agent Stop and Post', async (t) => 
   await flushWeave();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-ended-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-ended-call');
   assert.equal(agents.length, 1);
-  assert.equal(agents[0].attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agents[0].attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-ended-msg'));
 });
@@ -266,7 +266,7 @@ test('a failed team spawn closes its deferred owner', async (t) => {
     reason: 'clear',
   });
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'failed-team-call'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'failed-team-call'), false);
 
   await daemon.routeEvent({
     hook_event_name: 'PostToolUseFailure',
@@ -280,10 +280,10 @@ test('a failed team spawn closes its deferred owner', async (t) => {
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'failed-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'failed-team-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.ERROR_TYPE], 'SpawnError');
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(spans.some(span => span.attributes[ATTR.AGENT_NAME] === 'claude-code'));
 });
 
@@ -362,9 +362,9 @@ test('shutdown orphans an explicit Team Agent', async (t) => {
   const spans = exporter.getFinishedSpans();
   const root = spans.find(span => span.attributes[ATTR.AGENT_NAME] === 'claude-code');
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'shutdown-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'shutdown-team-call');
   assert.ok(root && agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], 'daemon_shutdown');
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], 'daemon_shutdown');
   assert.equal(spanParentId(agent), root.spanContext().spanId);
   assert.deepEqual(agent.endTime, root.endTime);
 });

@@ -167,7 +167,7 @@ test('Agent permission events stay on its invoke-agent span', async (t) => {
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.AGENT_NAME] === 'Explore');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(
     agent.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([{ role: 'assistant', content: 'done' }]),
@@ -243,7 +243,7 @@ test('restart-first nested PermissionDenied recovers its owner and stays fail-cl
   const spans = exporter.getFinishedSpans();
   const owner = spans.find(span => span.attributes[ATTR.AGENT_ID] === ownerId);
   const denied = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-child-agent');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-child-agent');
   assert.ok(owner && denied);
   assert.equal(spanParentId(denied), owner.spanContext().spanId);
   assert.equal(denied.attributes[ATTR.ERROR_TYPE], 'permission_denied');

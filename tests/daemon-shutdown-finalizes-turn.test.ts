@@ -59,7 +59,7 @@ for (const closure of [
     const tool = spans.find(span =>
       span.attributes[ATTR.OPERATION_NAME] === 'execute_tool');
     assert.ok(turn && chat && tool);
-    assert.equal(turn.attributes[ATTR.WEAVE_ORPHAN_REASON], closure.reason);
+    assert.equal(turn.attributes[ATTR.FORGE_ORPHAN_REASON], closure.reason);
     assert.equal(spanParentId(chat), turn.spanContext().spanId);
     assert.equal(spanParentId(tool), turn.spanContext().spanId);
     assert.ok(spans.indexOf(chat) < spans.indexOf(turn));
@@ -89,7 +89,7 @@ test('daemon drain orphans an open Agent under its turn', async (t) => {
   const agent = spans.find(span =>
     span.attributes[ATTR.AGENT_NAME] === 'reviewer');
   assert.ok(turn && agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], 'daemon_shutdown');
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], 'daemon_shutdown');
   assert.equal(spanParentId(agent), turn.spanContext().spanId);
   assert.deepEqual(agent.endTime, turn.endTime);
 });
@@ -113,7 +113,7 @@ test('abandoning a permission-pending tool records an orphan, not a denial', asy
   const tool = exporter.getFinishedSpans().find(span =>
     span.attributes['gen_ai.tool.call.id'] === 'pending-tool');
   assert.ok(tool);
-  assert.equal(tool.attributes[ATTR.WEAVE_ORPHAN_REASON], 'daemon_shutdown');
+  assert.equal(tool.attributes[ATTR.FORGE_ORPHAN_REASON], 'daemon_shutdown');
   assert.equal(tool.status.code, 2);
   assert.equal(
     tool.events.some(event => event.name === ATTR.EVT_PERMISSION_RESOLVED),

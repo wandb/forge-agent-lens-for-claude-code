@@ -131,7 +131,7 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
     'response-b',
   ]);
   assert.ok(responseSpans.every(span => spanParentId(span) === turn.spanContext().spanId));
-  assert.equal(turn.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(turn.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(
     turn.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([
@@ -140,9 +140,9 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
     ]),
   );
   assert.deepEqual(turn.attributes[ATTR.RESPONSE_FINISH_REASONS], ['end_turn']);
-  assert.equal(turn.attributes[ATTR.WEAVE_INTEGRATION_NAME], 'weave-claude-code');
-  assert.equal(turn.attributes[ATTR.WEAVE_INTEGRATION_VERSION], VERSION);
-  assert.equal(turn.attributes['weave.integration.meta.claude_code_app_version'], '1.2.3');
+  assert.equal(turn.attributes[ATTR.FORGE_INTEGRATION_NAME], 'forge-claude-code');
+  assert.equal(turn.attributes[ATTR.FORGE_INTEGRATION_VERSION], VERSION);
+  assert.equal(turn.attributes['forge.integration.meta.claude_code_app_version'], '1.2.3');
   assert.equal(responseSpans[0].attributes[ATTR.USAGE_INPUT_TOKENS], 30);
 });
 
@@ -352,8 +352,8 @@ test('a newer prompt closes an interrupted root without replaying its response',
   const first = rootSpans.find(span => String(span.attributes[ATTR.INPUT_MESSAGES]).includes('first'));
   const second = rootSpans.find(span => String(span.attributes[ATTR.INPUT_MESSAGES]).includes('second'));
   assert.ok(first && second);
-  assert.equal(first.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
-  assert.equal(second.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(first.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(second.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
 });
 
 test('an identical prompt submitted during transcript lag does not replay prior output', async (t) => {
@@ -474,7 +474,7 @@ test('an out-of-order Stop does not replace the foreground prompt', async (t) =>
   const foreground = turns(exporter.getFinishedSpans()).find(span =>
     String(span.attributes[ATTR.INPUT_MESSAGES]).includes('foreground'));
   assert.ok(foreground);
-  assert.equal(foreground.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(foreground.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
 });
 
 test('SessionEnd alone reconstructs the final turn, including its input', async (t) => {

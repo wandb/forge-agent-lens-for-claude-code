@@ -237,7 +237,7 @@ export class Daemon {
     await tracing.init(this.config.project, {
       apiKey: this.config.apiKey,
       baseUrl: this.config.baseUrl,
-      serviceName: 'weave-claude-code',
+      serviceName: 'forge-claude-code',
     });
     this.tracingEnabled = true;
   }
