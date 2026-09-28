@@ -62,7 +62,7 @@ tests.
 Export failures are invisible by default: a bad key or an unwritable project
 drops every span while hooks keep succeeding and the log rotates. Before trusting
 an empty project, grep the daemon log for `OTLPExporterError`. Surfacing the last
-rejection through `weave-claude-code status` is in flight on
+rejection through `forge-claude-code status` is in flight on
 `feat/status-export-health`.
 
 ## Transcript lifecycle
@@ -81,7 +81,7 @@ the first prompt of every new session went untraced.
 `resolveApiKey` and `resolveProject` in `src/config.ts` prefer the environment
 over `settings.json`. A revoked key in `settings.json` therefore stays hidden as
 long as `WANDB_API_KEY` is exported, and only surfaces for anything launched
-without it. `weave-claude-code status` prints which source won.
+without it. `forge-claude-code status` prints which source won.
 
 The daemon inherits the environment of whatever spawned it, so a daemon started
 from a shell without `WANDB_API_KEY` resolves a different key than your terminal

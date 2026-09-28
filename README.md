@@ -1,54 +1,54 @@
-# Weave Claude Code Plugin
+# Forge Claude Code Plugin
 
-[![npm](https://img.shields.io/npm/v/weave-claude-code)](https://www.npmjs.com/package/weave-claude-code)
+[![npm](https://img.shields.io/npm/v/forge-claude-code)](https://www.npmjs.com/package/forge-claude-code)
 [![CI](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml)
-[![license](https://img.shields.io/npm/l/weave-claude-code)](LICENSES/MIT.txt)
-[![node](https://img.shields.io/node/v/weave-claude-code)](package.json)
+[![license](https://img.shields.io/npm/l/forge-claude-code)](LICENSES/MIT.txt)
+[![node](https://img.shields.io/node/v/forge-claude-code)](package.json)
 
-Track Claude Code sessions in [Weave](https://wandb.ai/) for observability and debugging. Every session, turn, tool call, and subagent is automatically logged as a structured trace — no code changes required.
+Trace Claude Code sessions with CoreWeave Forge and view them in the [W&B Weave](https://wandb.ai/) Agents view. Every session, turn, tool call, and subagent is logged as a structured trace, with no code changes required.
 
 ## Quick Start
 
 **1. Install the CLI**
 
 ```bash
-npm install -g weave-claude-code
+npm install -g forge-claude-code
 ```
 
 **2. Run the installer**
 
 ```bash
-weave-claude-code install
+forge-claude-code install
 ```
 
 This will:
-- Create `~/.weave-claude-code/settings.json`
+- Create `~/.forge-claude-code/settings.json`
 - Register the plugin in Claude Code
-- Prompt for your Weave project (`entity/project`) and W&B API key if not already set
+- Prompt for the W&B project that receives traces (`entity/project`) and your W&B API key if not already set
 
 Your W&B API key is available at https://wandb.ai/authorize.
 
 For CI, bootstrap scripts, or other automated systems, you can skip prompts:
 
 ```bash
-WEAVE_PROJECT=my-entity/my-project \
+FORGE_TRACE_PROJECT=my-entity/my-project \
 WANDB_API_KEY=<your-api-key> \
-weave-claude-code install --non-interactive
+forge-claude-code install --non-interactive
 ```
 
 In non-interactive mode, the installer still creates config, registers the Claude marketplace, and installs the plugin. It does not prompt for missing values. Instead, it:
-- Uses `WEAVE_PROJECT` and `WANDB_API_KEY` from the environment when present
+- Uses `FORGE_TRACE_PROJECT` and `WANDB_API_KEY` from the environment when present
 - Warns and continues if either value is missing
 - Leaves environment-provided values in the environment rather than writing them into `settings.json`
 
 By default, `claude plugin marketplace add` clones `wandb/weave-claude-code` from GitHub. In CI or container sandboxes without git/SSH access to GitHub, pass `--source=local` to register the marketplace from the npm-installed tree on disk instead:
 
 ```bash
-npm install -g weave-claude-code
-weave-claude-code install --non-interactive --source=local
+npm install -g forge-claude-code
+forge-claude-code install --non-interactive --source=local
 ```
 
-`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/weave-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
+`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/forge-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
 
 **3. Restart or launch Claude Code**
 
@@ -64,9 +64,23 @@ Otherwise, launch Claude Code from any folder:
 claude
 ```
 
-Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single project. To stop tracing, run `weave-claude-code uninstall`.
+Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single project. To stop tracing, run `forge-claude-code uninstall`.
 
-Open your Weave project to see them.
+Open your project's Agents view in W&B Weave to see them.
+
+---
+
+## Upgrading from weave-claude-code
+
+This plugin was previously published as `weave-claude-code`. Install the new package and run its installer, which copies `~/.weave-claude-code/settings.json` into `~/.forge-claude-code/` and removes the old `weave-claude-code` marketplace so its plugin stops tracing:
+
+```bash
+npm install -g forge-claude-code
+forge-claude-code install
+npm uninstall -g weave-claude-code
+```
+
+The environment variables `WEAVE_PROJECT`, `WEAVE_AGENT_NAME`, and `WEAVE_CLAUDE_DEBUG` still work. Their new names are `FORGE_TRACE_PROJECT`, `FORGE_CLAUDE_CODE_AGENT_NAME`, and `FORGE_CLAUDE_CODE_DEBUG`.
 
 ---
 
@@ -97,30 +111,30 @@ or compliance requirements, do not install or enable this plugin yet.
 
 ```bash
 # Show all current settings (env-var overrides are flagged in the output)
-weave-claude-code config show
+forge-claude-code config show
 
 # Read a single setting (resolves env-var overrides)
-weave-claude-code config get weave_project
+forge-claude-code config get project
 
-# Set your Weave project
-weave-claude-code config set weave_project my-entity/my-project
+# Set the W&B project that receives traces
+forge-claude-code config set project my-entity/my-project
 
 # Set your W&B API key
-weave-claude-code config set wandb_api_key <your-api-key>
+forge-claude-code config set wandb_api_key <your-api-key>
 
-# (Optional) Customize the agent name shown in Weave's Agents view (default: claude-code)
-weave-claude-code config set agent_name my-team-bot
+# (Optional) Customize the agent name shown in the Weave Agents view (default: claude-code)
+forge-claude-code config set agent_name my-team-bot
 ```
 
 You can also set these via environment variables — they take precedence over the settings file:
 
 ```bash
-export WEAVE_PROJECT=my-entity/my-project
+export FORGE_TRACE_PROJECT=my-entity/my-project
 export WANDB_API_KEY=<your-api-key>
-export WEAVE_AGENT_NAME=my-team-bot
+export FORGE_CLAUDE_CODE_AGENT_NAME=my-team-bot
 ```
 
-This is especially useful with `weave-claude-code install --non-interactive`, where the installer checks these variables instead of prompting.
+This is especially useful with `forge-claude-code install --non-interactive`, where the installer checks these variables instead of prompting.
 
 ---
 
@@ -138,7 +152,7 @@ On SaaS, leave `WANDB_BASE_URL` unset (traces go to `https://trace.wandb.ai`). S
 
 ```bash
 export WANDB_BASE_URL=https://your-instance.wandb.io
-weave-claude-code restart
+forge-claude-code restart
 ```
 
 ---
@@ -146,62 +160,62 @@ weave-claude-code restart
 ## Check Status
 
 ```bash
-weave-claude-code status
+forge-claude-code status
 ```
 
 Each line shows `✓` (OK), `✗` (action needed), or `-` (not yet active but not an error).
 
-If sessions are not appearing in Weave, check the daemon log for errors:
+If sessions are not appearing in the Weave Agents view, check the daemon log for errors:
 
 ```bash
-weave-claude-code logs              # last 50 lines (default)
-weave-claude-code logs --tail 200   # last N lines
-weave-claude-code logs --follow     # tail -f
+forge-claude-code logs              # last 50 lines (default)
+forge-claude-code logs --tail 200   # last N lines
+forge-claude-code logs --follow     # tail -f
 ```
 
-The log file is also directly at `~/.weave-claude-code/logs/daemon.log`.
+The log file is also directly at `~/.forge-claude-code/logs/daemon.log`.
 
 For more verbose daemon output while diagnosing an issue, enable debug mode:
 
 ```bash
-weave-claude-code config set debug true
+forge-claude-code config set debug true
 # or, just for the current shell session:
-export WEAVE_CLAUDE_DEBUG=1
+export FORGE_CLAUDE_CODE_DEBUG=1
 ```
 
 ---
 
 ## Skills
 
-Once the plugin is installed, three skills are available directly inside any Claude Code session. They use a `/weave:weave-*` naming pattern (rather than the shorter `/weave:install` form) to avoid colliding with Claude Code's built-in skills.
+Once the plugin is installed, three skills are available directly inside any Claude Code session. They use a `/forge:forge-*` naming pattern (rather than the shorter `/forge:install` form) to avoid colliding with Claude Code's built-in skills.
 
-### `/weave:weave-install`
+### `/forge:forge-install`
 
 Walks through the full installation and configuration flow interactively. Use this on a fresh machine or to diagnose a broken setup. Claude will check for the CLI, run the installer, prompt for missing config values, and verify everything is working.
 
 ```
-/weave:weave-install
+/forge:forge-install
 ```
 
-### `/weave:weave-status`
+### `/forge:forge-status`
 
-Checks the current plugin status and explains any issues. Equivalent to running `weave-claude-code status` but Claude interprets the output and tells you exactly what to fix.
+Checks the current plugin status and explains any issues. Equivalent to running `forge-claude-code status` but Claude interprets the output and tells you exactly what to fix.
 
 ```
-/weave:weave-status
+/forge:forge-status
 ```
 
-### `/weave:weave-config`
+### `/forge:forge-config`
 
 Read or update plugin configuration without leaving Claude Code.
 
 ```
 # Show current config
-/weave:weave-config
+/forge:forge-config
 
 # Set a value directly
-/weave:weave-config set weave_project my-entity/my-project
-/weave:weave-config set wandb_api_key <your-api-key>
+/forge:forge-config set project my-entity/my-project
+/forge:forge-config set wandb_api_key <your-api-key>
 ```
 
 ---
@@ -218,8 +232,8 @@ every span in the turn.
 
 Spans are built with the [CoreWeave Forge SDK](https://www.npmjs.com/package/@coreweave/forge-sdk).
 Every span carries `weave.source = forge-integration` and the
-`weave.integration.*` identity of this plugin; the OTLP resource reports
-`wandb.sdk.name = forge`.
+`forge.integration.*` identity of this plugin; the OTLP resource reports
+`service.name = forge-claude-code` and `wandb.sdk.name = forge`.
 
 ```
 invoke_agent claude-code                  (root — one trace per user prompt)
@@ -236,10 +250,10 @@ of any regular tool calls — not as an `execute_tool Agent` span. This
 matches the Weave Agents chat view's reference structure, where nested
 `invoke_agent` spans render as an `agent_start` lifecycle marker for the
 subagent. The spawning tool_use_id is preserved on the inner
-`invoke_agent` span as `weave.claude_code.subagent.spawning_tool_call_id`.
+`invoke_agent` span as `forge.claude_code.subagent.spawning_tool_call_id`.
 
-Permission requests appear as `weave.permission_request` events on the
-corresponding tool or agent call span; context-window compaction is stamped as
+Permission requests appear as `forge.permission_request` events on the
+corresponding tool or agent call span; context-window compaction is recorded as
 `weave.compaction.{summary,items_before,items_after}` attributes on the
 turn span open at compaction time (or the next turn if compaction fires
 between turns).
@@ -262,7 +276,7 @@ not available today.
 ## Uninstall
 
 ```bash
-weave-claude-code uninstall
+forge-claude-code uninstall
 ```
 
 Pass `--keep-logs` to preserve the log directory.
