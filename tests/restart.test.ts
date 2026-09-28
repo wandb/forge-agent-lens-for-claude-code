@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 // Tests for `forge-claude-code restart`: stop a running daemon and start a
 // fresh one, and refuse to spawn an unconfigured daemon.

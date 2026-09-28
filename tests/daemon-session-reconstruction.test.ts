@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 // The daemon shuts itself down after a short idle window and keeps all session
 // state in memory, seeded only at SessionStart. A Claude Code session that

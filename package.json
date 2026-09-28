@@ -1,11 +1,11 @@
 {
-  "name": "weave-claude-code",
+  "name": "forge-claude-code",
   "version": "0.2.15",
-  "description": "Track Claude Code sessions in Weave for observability and debugging",
+  "description": "Trace Claude Code sessions with CoreWeave Forge for observability and debugging",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "weave-claude-code": "dist/cli.js"
+    "forge-claude-code": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc && node scripts/build/copy-version-module.mjs",

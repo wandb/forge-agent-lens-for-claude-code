@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 import * as fs from 'fs';
 import * as os from 'os';
@@ -140,7 +140,7 @@ export const LEGACY_MARKETPLACE_NAME = 'weave-claude-code';
 // marketplace name lives in .claude-plugin/marketplace.json, the npm package
 // name lives in package.json. Kept separate so renaming one does not silently
 // break the other.
-const NPM_PACKAGE_NAME = 'forge-claude-code';
+export const NPM_PACKAGE_NAME = 'forge-claude-code';
 export const LEGACY_NPM_PACKAGE_NAME = 'weave-claude-code';
 
 /**
