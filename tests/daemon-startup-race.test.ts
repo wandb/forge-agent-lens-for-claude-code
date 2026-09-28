@@ -39,7 +39,7 @@ test('a herd of concurrent daemon starts crashes nobody and leaves exactly one l
   fs.writeFileSync(
     path.join(configDir, 'settings.json'),
     JSON.stringify({
-      weave_project: 'test/test', wandb_api_key: 'fake-key',
+      project: 'test/test', wandb_api_key: 'fake-key',
       daemon_socket: socketPath, log_file: logPath, debug: true,
     }),
   );

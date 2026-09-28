@@ -22,7 +22,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '..');
 const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 const WARNING = /⚠ Config\s+daemon on an older config/;
-const STRIP = ['WEAVE_PROJECT', 'WANDB_API_KEY', 'WEAVE_AGENT_NAME', 'WANDB_BASE_URL', 'WEAVE_CLAUDE_DEBUG'];
+const STRIP = [
+  'FORGE_TRACE_PROJECT', 'WEAVE_PROJECT', 'WANDB_API_KEY', 'FORGE_CLAUDE_CODE_AGENT_NAME', 'WEAVE_AGENT_NAME',
+  'WANDB_BASE_URL', 'FORGE_CLAUDE_CODE_DEBUG', 'WEAVE_CLAUDE_DEBUG',
+];
 
 let scratch: string;
 before(() => { scratch = fs.mkdtempSync('/tmp/wcp-drift-'); });
@@ -35,7 +38,7 @@ function writeSettings(home: string, overrides: Record<string, unknown> = {}): {
   const settings = {
     log_file: path.join(dir, 'logs', 'daemon.log'),
     daemon_socket: socketPath,
-    weave_project: 'fake-entity/fake-project',
+    project: 'fake-entity/fake-project',
     wandb_api_key: 'fake-api-key',
     agent_name: 'goobers',
     debug: false,
@@ -88,14 +91,14 @@ async function waitFor(predicate: () => boolean, timeoutMs = 8000): Promise<void
 // ─────────────────────────────────────────────────────────────────────────────
 suite('daemonConfigFingerprint', () => {
   test('is stable for identical config and changes when agent_name changes', () => {
-    const base = { weaveProject: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName: 'goober', debug: false };
+    const base = { project: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName: 'goober', debug: false };
     const fp = daemonConfigFingerprint(base);
     assert.equal(daemonConfigFingerprint({ ...base }), fp);
     assert.notEqual(daemonConfigFingerprint({ ...base, agentName: 'goobers' }), fp);
   });
 
   test('does not contain the raw API key', () => {
-    const fp = daemonConfigFingerprint({ weaveProject: 'e/p', apiKey: 'SUPER-SECRET', baseUrl: 'https://x', agentName: 'a', debug: false });
+    const fp = daemonConfigFingerprint({ project: 'e/p', apiKey: 'SUPER-SECRET', baseUrl: 'https://x', agentName: 'a', debug: false });
     assert.doesNotMatch(fp, /SUPER-SECRET/);
   });
 });
@@ -150,7 +153,7 @@ suite('status config-drift against a real daemon', () => {
     const env: NodeJS.ProcessEnv = { ...process.env, HOME: home };
     for (const k of STRIP) delete env[k];
     env.WANDB_BASE_URL = 'http://127.0.0.1:1'; // never reach real wandb.ai
-    env.WEAVE_INACTIVITY_MS = '20000';
+    env.FORGE_CLAUDE_CODE_INACTIVITY_MS = '20000';
 
     const child = spawn(process.execPath, ['--import', 'tsx', CLI, 'daemon'], { cwd: REPO_ROOT, env, stdio: 'ignore' });
     try {

@@ -74,7 +74,7 @@ export const ATTR = {
 } as const;
 
 /** Top-level `gen_ai.agent.name` fallback; users override via settings
- *  `agent_name` / `WEAVE_AGENT_NAME`. */
+ *  `agent_name` / `FORGE_CLAUDE_CODE_AGENT_NAME`. */
 export const DEFAULT_AGENT_NAME = 'claude-code';
 
 const INTEGRATION_NAME = 'weave-claude-code';

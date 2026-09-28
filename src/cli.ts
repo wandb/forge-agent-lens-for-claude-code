@@ -32,10 +32,11 @@ import {
   resolveProject,
   resolveApiKey,
   resolveAgentName,
+  resolveDebug,
   resolveDaemonConfig,
   daemonConfigFingerprint,
   missingConfig,
-  WeaveProjectSource,
+  ProjectSource,
   ApiKeySource,
 } from './config.js';
 import { DEFAULT_AGENT_NAME } from './genaiSpans.js';
@@ -76,7 +77,7 @@ Examples:
   weave-claude-code install
   weave-claude-code install --non-interactive
   weave-claude-code install --non-interactive --source=local
-  weave-claude-code config set weave_project my-entity/my-project
+  weave-claude-code config set project my-entity/my-project
   weave-claude-code status
   weave-claude-code logs --tail 100
 `.trim();
@@ -155,23 +156,24 @@ async function cmdInstall(
     process.exit(1);
   }
 
-  const effectiveProject = resolveProject(settings).value;
+  const project = resolveProject(settings);
+  const effectiveProject = project.value;
   const effectiveApiKey = resolveApiKey(settings).value;
 
   if (nonInteractive) {
     console.log('\n- Non-interactive install: skipping setup prompts');
 
-    const envProject = process.env['WEAVE_PROJECT'];
     const envApiKey = process.env['WANDB_API_KEY'];
+    const projectVar = project.source === ProjectSource.LegacyEnvVar ? 'WEAVE_PROJECT' : 'FORGE_TRACE_PROJECT';
 
-    if (envProject) {
-      if (!envProject.includes('/')) {
-        console.error(`✗ Invalid WEAVE_PROJECT: '${effectiveProject}' — expected entity/project`);
+    if (effectiveProject && project.source !== ProjectSource.Settings) {
+      if (!effectiveProject.includes('/')) {
+        console.error(`✗ Invalid ${projectVar}: '${effectiveProject}' — expected entity/project`);
         process.exit(1);
       }
-      console.warn(`⚠ Using WEAVE_PROJECT from environment: ${envProject}`);
+      console.warn(`⚠ Using ${projectVar} from environment: ${effectiveProject}`);
     } else if (!effectiveProject) {
-      console.warn('- WEAVE_PROJECT not set. Run: weave-claude-code config set weave_project ENTITY/PROJECT');
+      console.warn('- FORGE_TRACE_PROJECT not set. Run: weave-claude-code config set project ENTITY/PROJECT');
     }
 
     if (envApiKey) {
@@ -181,18 +183,18 @@ async function cmdInstall(
     }
   } else if (process.stdin.isTTY) {
     if (!effectiveProject) {
-      const answer = await prompt('\nWeave project (ENTITY/PROJECT): ');
+      const answer = await prompt('\nW&B project for traces (ENTITY/PROJECT): ');
       const value = answer.trim();
       if (value) {
         if (!value.includes('/')) {
           console.error(`✗ Invalid format: '${value}' — expected entity/project`);
           process.exit(1);
         }
-        settings.weave_project = value;
+        settings.project = value;
         saveSettings(settings);
-        console.log(`✓ Set weave_project = ${value}`);
+        console.log(`✓ Set project = ${value}`);
       } else {
-        console.log('- Skipped weave_project (set later: weave-claude-code config set weave_project ENTITY/PROJECT)');
+        console.log('- Skipped project (set later: weave-claude-code config set project ENTITY/PROJECT)');
       }
     }
 
@@ -211,7 +213,7 @@ async function cmdInstall(
     }
   } else {
     if (!effectiveProject) {
-      console.log('- weave_project not set. Run: weave-claude-code config set weave_project ENTITY/PROJECT');
+      console.log('- project not set. Run: weave-claude-code config set project ENTITY/PROJECT');
     }
     if (!effectiveApiKey) {
       console.log('- wandb_api_key not set. Run: weave-claude-code config set wandb_api_key <your-api-key>');
@@ -249,11 +251,12 @@ async function cmdConfig(args: string[]): Promise<void> {
     console.log('Current configuration:');
     console.log(`  log_file:      ${settings.log_file}`);
     console.log(`  daemon_socket: ${settings.daemon_socket}`);
-    console.log(`  weave_project: ${effectiveProject ?? '(not set)'} [${projectSource}]`);
+    console.log(`  project:       ${effectiveProject ?? '(not set)'} [${projectSource}]`);
     console.log(`  wandb_api_key: ${apiKeyDisplay}`);
     const agentName = resolveAgentName(settings);
     console.log(`  agent_name:    ${agentName.value} [${agentName.source}]`);
-    console.log(`  debug:         ${!!process.env['WEAVE_CLAUDE_DEBUG'] || settings.debug} ${process.env['WEAVE_CLAUDE_DEBUG'] ? '[WEAVE_CLAUDE_DEBUG env var]' : ''}`);
+    const debug = resolveDebug(settings);
+    console.log(`  debug:         ${debug.value}${debug.envVar ? ` [${debug.envVar} env var]` : ''}`);
     console.log(`  installed_at:  ${settings.installed_at}`);
     console.log(`  version:       ${settings.version}`);
     return;
@@ -284,7 +287,7 @@ async function cmdConfig(args: string[]): Promise<void> {
       console.error(`Unknown key: ${key}`);
       process.exit(1);
     }
-    if (key === 'weave_project') {
+    if (key === 'project') {
       console.log(resolveProject(settings).value ?? '(not set)');
     } else if (key === 'wandb_api_key') {
       console.log(resolveApiKey(settings).value ?? '(not set)');
@@ -302,15 +305,15 @@ async function cmdConfig(args: string[]): Promise<void> {
       process.exit(1);
     }
 
-    const writableKeys: readonly (keyof Settings)[] = ['weave_project', 'wandb_api_key', 'agent_name', 'daemon_socket', 'debug'];
+    const writableKeys: readonly (keyof Settings)[] = ['project', 'wandb_api_key', 'agent_name', 'daemon_socket', 'debug'];
     if (!writableKeys.includes(key as keyof Settings)) {
       console.error(`Cannot set '${key}'. Writable keys: ${writableKeys.join(', ')}`);
       process.exit(1);
     }
     const writableKey = key as keyof Settings;
 
-    if (key === 'weave_project' && !value.includes('/')) {
-      console.error(`Invalid format for weave_project: '${value}'\nExpected: entity/project (e.g. my-entity/my-project)`);
+    if (key === 'project' && !value.includes('/')) {
+      console.error(`Invalid format for project: '${value}'\nExpected: entity/project (e.g. my-entity/my-project)`);
       process.exit(1);
     }
 
@@ -365,8 +368,8 @@ interface StatusReport {
   version: string;
   settings_file: string;
   cli_path: string | null;
-  weave_project: string | null;
-  weave_project_source: WeaveProjectSource;
+  project: string | null;
+  project_source: ProjectSource;
   api_key_configured: boolean;
   /** Agent name shown in Weave; always set (falls back to the default). */
   agent_name: string;
@@ -425,8 +428,8 @@ async function gatherStatus(): Promise<StatusSnapshot> {
     version: VERSION,
     settings_file: SETTINGS_FILE,
     cli_path: null,
-    weave_project: null,
-    weave_project_source: WeaveProjectSource.NotSet,
+    project: null,
+    project_source: ProjectSource.NotSet,
     api_key_configured: false,
     agent_name: DEFAULT_AGENT_NAME,
     plugin_source: readRegisteredPluginSource(MARKETPLACE_NAME),
@@ -467,8 +470,8 @@ async function gatherStatus(): Promise<StatusSnapshot> {
 
   const { value: effectiveProject, source: projectSource } = resolveProject(settings);
   if (effectiveProject) {
-    report.weave_project = effectiveProject;
-    report.weave_project_source = projectSource;
+    report.project = effectiveProject;
+    report.project_source = projectSource;
   }
 
   const { value: effectiveApiKey, source: apiKeySource } = resolveApiKey(settings);
@@ -574,17 +577,17 @@ function printPrettyStatus(snap: StatusSnapshot): void {
   } else if (socketState === SocketState.Stale) {
     console.log('Weave Claude Code — daemon socket stale (auto-recovers next session)');
   } else {
-    const missing = missingConfig(!!report.weave_project, report.api_key_configured, 'wandb_api_key');
+    const missing = missingConfig(!!report.project, report.api_key_configured, 'wandb_api_key');
     console.log('Weave Claude Code — configuration incomplete');
     if (missing) console.log(`  Set ${missing} to start tracing`);
   }
 
   // Config
   console.log(`\nConfig    ${abbrevHome(report.settings_file)}`);
-  if (report.weave_project) {
-    statusRow('✓', 'Project', `${report.weave_project}  (${report.weave_project_source})`);
+  if (report.project) {
+    statusRow('✓', 'Project', `${report.project}  (${report.project_source})`);
   } else {
-    statusRow('✗', 'Project', 'not set', 'weave-claude-code config set weave_project ENTITY/PROJECT');
+    statusRow('✗', 'Project', 'not set', 'weave-claude-code config set project ENTITY/PROJECT');
   }
   if (report.api_key_configured) {
     statusRow('✓', 'API key', `${api_key_masked}  (${api_key_source})`);
@@ -631,7 +634,7 @@ function printPrettyStatus(snap: StatusSnapshot): void {
     if (report.last_export_error) {
       const { code, message, count, at } = report.last_export_error;
       const label = code ? `${code} ${message}` : message;
-      statusRow('⚠', 'Export', `${label} (${count}x, last ${at.slice(11, 19)})`, exportHint(code, report.weave_project));
+      statusRow('⚠', 'Export', `${label} (${count}x, last ${at.slice(11, 19)})`, exportHint(code, report.project));
     }
   }
   if (report.log_file.size_bytes !== null) {
@@ -832,7 +835,7 @@ async function cmdRestart(): Promise<void> {
   if (!project || !apiKey) {
     const missing = missingConfig(!!project, !!apiKey, 'WANDB_API_KEY');
     console.error(`⚠ Not starting daemon, missing configuration: ${missing}`);
-    console.error('  Set it with: weave-claude-code config set weave_project ENTITY/PROJECT');
+    console.error('  Set it with: weave-claude-code config set project ENTITY/PROJECT');
     process.exit(1);
   }
 

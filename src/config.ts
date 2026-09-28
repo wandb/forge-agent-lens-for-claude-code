@@ -11,8 +11,9 @@ import { sha256Hex } from './utils.js';
 import type { Settings } from './setup.js';
 
 /** Where a resolved value came from, for user-facing "source" reporting. */
-export enum WeaveProjectSource {
-  EnvVar = 'WEAVE_PROJECT env var',
+export enum ProjectSource {
+  EnvVar = 'FORGE_TRACE_PROJECT env var',
+  LegacyEnvVar = 'WEAVE_PROJECT env var',
   Settings = 'settings.json',
   NotSet = 'not set',
 }
@@ -23,35 +24,43 @@ export enum ApiKeySource {
 }
 /** No `NotSet`: agent_name always resolves to the built-in default. */
 export enum AgentNameSource {
-  EnvVar = 'WEAVE_AGENT_NAME env var',
+  EnvVar = 'FORGE_CLAUDE_CODE_AGENT_NAME env var',
+  LegacyEnvVar = 'WEAVE_AGENT_NAME env var',
   Settings = 'settings.json',
   Default = 'default',
 }
 
-/** Env-over-settings resolution shared by the project and API-key resolvers:
- *  a non-empty env value wins, then a non-empty settings value, else null.
- *  `sources` supplies the per-field labels for the matching branch. */
-function resolveFromEnvOrSettings<S>(
-  envValue: string | undefined,
-  settingsValue: string | null | undefined,
-  sources: { env: S; settings: S; notSet: S },
-): { value: string | null; source: S } {
-  if (envValue) return { value: envValue, source: sources.env };
-  if (settingsValue) return { value: settingsValue, source: sources.settings };
-  return { value: null, source: sources.notSet };
+/** Pre-rename variable names, still honored so existing shells keep working. */
+const LEGACY_ENV = {
+  FORGE_TRACE_PROJECT: 'WEAVE_PROJECT',
+  FORGE_CLAUDE_CODE_AGENT_NAME: 'WEAVE_AGENT_NAME',
+  FORGE_CLAUDE_CODE_DEBUG: 'WEAVE_CLAUDE_DEBUG',
+} as const;
+
+/** The first non-empty value of a variable or its legacy name, and which one it came from. */
+function readEnv(
+  env: NodeJS.ProcessEnv,
+  name: keyof typeof LEGACY_ENV,
+): { value: string; name: string; legacy: boolean } | undefined {
+  const value = env[name]?.trim();
+  if (value) return { value, name, legacy: false };
+  const legacyName = LEGACY_ENV[name];
+  const legacy = env[legacyName]?.trim();
+  return legacy ? { value: legacy, name: legacyName, legacy: true } : undefined;
 }
 
-/** Resolve the effective Weave project (WEAVE_PROJECT env beats
- *  settings.weave_project) and where it came from. */
+/** Resolve the effective project (FORGE_TRACE_PROJECT, then the legacy
+ *  WEAVE_PROJECT, then settings.project) and where it came from. */
 export function resolveProject(
   settings: Settings,
   env: NodeJS.ProcessEnv = process.env,
-): { value: string | null; source: WeaveProjectSource } {
-  return resolveFromEnvOrSettings(env['WEAVE_PROJECT'], settings.weave_project, {
-    env: WeaveProjectSource.EnvVar,
-    settings: WeaveProjectSource.Settings,
-    notSet: WeaveProjectSource.NotSet,
-  });
+): { value: string | null; source: ProjectSource } {
+  const fromEnv = readEnv(env, 'FORGE_TRACE_PROJECT');
+  if (fromEnv) {
+    return { value: fromEnv.value, source: fromEnv.legacy ? ProjectSource.LegacyEnvVar : ProjectSource.EnvVar };
+  }
+  if (settings.project) return { value: settings.project, source: ProjectSource.Settings };
+  return { value: null, source: ProjectSource.NotSet };
 }
 
 /** Resolve the effective W&B API key (WANDB_API_KEY env beats
@@ -60,29 +69,40 @@ export function resolveApiKey(
   settings: Settings,
   env: NodeJS.ProcessEnv = process.env,
 ): { value: string | null; source: ApiKeySource } {
-  return resolveFromEnvOrSettings(env['WANDB_API_KEY'], settings.wandb_api_key, {
-    env: ApiKeySource.EnvVar,
-    settings: ApiKeySource.Settings,
-    notSet: ApiKeySource.NotSet,
-  });
+  if (env['WANDB_API_KEY']) return { value: env['WANDB_API_KEY'], source: ApiKeySource.EnvVar };
+  if (settings.wandb_api_key) return { value: settings.wandb_api_key, source: ApiKeySource.Settings };
+  return { value: null, source: ApiKeySource.NotSet };
 }
 
-/** Resolve the effective top-level agent name (WEAVE_AGENT_NAME env beats
- *  settings.agent_name), falling back to `DEFAULT_AGENT_NAME`. */
+/** Resolve the effective top-level agent name (FORGE_CLAUDE_CODE_AGENT_NAME,
+ *  then the legacy WEAVE_AGENT_NAME, then settings.agent_name), falling back
+ *  to `DEFAULT_AGENT_NAME`. */
 export function resolveAgentName(
   settings: Settings,
   env: NodeJS.ProcessEnv = process.env,
 ): { value: string; source: AgentNameSource } {
-  const fromEnv = env['WEAVE_AGENT_NAME']?.trim();
-  if (fromEnv) return { value: fromEnv, source: AgentNameSource.EnvVar };
+  const fromEnv = readEnv(env, 'FORGE_CLAUDE_CODE_AGENT_NAME');
+  if (fromEnv) {
+    return { value: fromEnv.value, source: fromEnv.legacy ? AgentNameSource.LegacyEnvVar : AgentNameSource.EnvVar };
+  }
   const fromSettings = settings.agent_name?.trim();
   if (fromSettings) return { value: fromSettings, source: AgentNameSource.Settings };
   return { value: DEFAULT_AGENT_NAME, source: AgentNameSource.Default };
 }
 
+/** Debug logging is on when either debug variable is set; `envVar` names it. */
+export function resolveDebug(
+  settings: Settings,
+  env: NodeJS.ProcessEnv = process.env,
+): { value: boolean; envVar: string | null } {
+  const fromEnv = readEnv(env, 'FORGE_CLAUDE_CODE_DEBUG');
+  if (fromEnv) return { value: true, envVar: fromEnv.name };
+  return { value: settings.debug === true, envVar: null };
+}
+
 /** The config the daemon loads at startup and holds for its lifetime. */
 export type DaemonConfig = {
-  weaveProject: string | null;
+  project: string | null;
   apiKey: string | null;
   baseUrl: string;
   agentName: string;
@@ -93,11 +113,11 @@ export type DaemonConfig = {
  *  resolvers so the env-over-settings precedence is defined once. */
 export function resolveDaemonConfig(settings: Settings, env: NodeJS.ProcessEnv): DaemonConfig {
   return {
-    weaveProject: resolveProject(settings, env).value,
+    project: resolveProject(settings, env).value,
     apiKey: resolveApiKey(settings, env).value,
     baseUrl: resolveTraceBaseUrl(env),
     agentName: resolveAgentName(settings, env).value,
-    debug: !!env['WEAVE_CLAUDE_DEBUG'] || settings.debug === true,
+    debug: resolveDebug(settings, env).value,
   };
 }
 
@@ -121,7 +141,7 @@ function resolveTraceBaseUrl(env: NodeJS.ProcessEnv): string {
  *  (`wandb_api_key` for config-oriented messages, `WANDB_API_KEY` for
  *  env-oriented ones). */
 export function missingConfig(hasProject: boolean, hasApiKey: boolean, apiKeyLabel: string): string {
-  return [!hasProject && 'weave_project', !hasApiKey && apiKeyLabel].filter(Boolean).join(', ');
+  return [!hasProject && 'project', !hasApiKey && apiKeyLabel].filter(Boolean).join(', ');
 }
 
 /** Hex chars kept from the config hash. 16 (64 bits) is ample to detect a
@@ -131,6 +151,6 @@ const CONFIG_FINGERPRINT_LENGTH = 16;
 /** Short, stable hash of a daemon config. The API key is hashed, not exposed,
  *  so the fingerprint is safe to send over the socket. */
 export function daemonConfigFingerprint(c: DaemonConfig): string {
-  return sha256Hex(JSON.stringify([c.weaveProject, c.apiKey, c.baseUrl, c.agentName, c.debug]))
+  return sha256Hex(JSON.stringify([c.project, c.apiKey, c.baseUrl, c.agentName, c.debug]))
     .slice(0, CONFIG_FINGERPRINT_LENGTH);
 }

@@ -21,7 +21,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '..');
 const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 const EXPORT_ROW = /⚠ Export\s+/;
-const STRIP = ['WEAVE_PROJECT', 'WANDB_API_KEY', 'WEAVE_AGENT_NAME', 'WANDB_BASE_URL', 'WEAVE_CLAUDE_DEBUG'];
+const STRIP = [
+  'FORGE_TRACE_PROJECT', 'WEAVE_PROJECT', 'WANDB_API_KEY', 'FORGE_CLAUDE_CODE_AGENT_NAME', 'WEAVE_AGENT_NAME',
+  'WANDB_BASE_URL', 'FORGE_CLAUDE_CODE_DEBUG', 'WEAVE_CLAUDE_DEBUG',
+];
 
 // Verbatim daemon.log payloads from a real run against an inaccessible project.
 const DIAG_403 =
@@ -42,7 +45,7 @@ function writeSettings(home: string): { socketPath: string } {
   fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({
     log_file: path.join(dir, 'logs', 'daemon.log'),
     daemon_socket: socketPath,
-    weave_project: 'fake-entity/fake-project',
+    project: 'fake-entity/fake-project',
     wandb_api_key: 'fake-api-key',
     agent_name: 'goobers',
     debug: false,
@@ -125,7 +128,7 @@ suite('daemon control reply', () => {
     const socketPath = path.join(fs.mkdtempSync('/tmp/wcp-eh-sock-'), 'd.sock');
     const logFile = path.join(os.tmpdir(), `wcp-eh-${process.pid}.log`);
     const daemon = new Daemon(socketPath, logFile, {
-      weaveProject: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName: 'a', debug: false,
+      project: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName: 'a', debug: false,
     });
     (daemon as unknown as { exportHealth: ExportHealth }).exportHealth.record(DIAG_403);
     await (daemon as unknown as { listenOnce(): Promise<void> }).listenOnce();

@@ -51,7 +51,7 @@ function newWorkspace(label: string): Workspace {
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });
   const socketPath = path.join(configDir, 'daemon.sock');
   const settings = {
-    weave_project: 'fake-entity/fake-project',
+    project: 'fake-entity/fake-project',
     wandb_api_key: 'fake-api-key',
     daemon_socket: socketPath,
     log_file: path.join(configDir, 'logs', 'daemon.log'),

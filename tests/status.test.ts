@@ -24,7 +24,7 @@ before(() => { scratch = fs.mkdtempSync('/tmp/wcp-status-test-'); });
 after(() => { fs.rmSync(scratch, { recursive: true, force: true }); });
 
 interface SettingsOverrides {
-  weave_project?: string | null;
+  project?: string | null;
   wandb_api_key?: string | null;
   agent_name?: string | null;
 }
@@ -35,7 +35,7 @@ function writeSettings(home: string, overrides: SettingsOverrides = {}): { socke
   const socketPath = path.join(configDir, 'daemon.sock');
   const logFile = path.join(configDir, 'logs', 'daemon.log');
   const settings = {
-    weave_project: 'fake-entity/fake-project',
+    project: 'fake-entity/fake-project',
     wandb_api_key: 'SUPER-SECRET-KEY-DO-NOT-LEAK',
     daemon_socket: socketPath,
     log_file: logFile,
@@ -49,8 +49,10 @@ function runStatus(home: string, extraArgs: string[] = []): Promise<{ stdout: st
   // Env vars override settings.json values; strip them so each test fully
   // controls its inputs via settings.json.
   const env: NodeJS.ProcessEnv = { ...process.env, HOME: home };
+  delete env['FORGE_TRACE_PROJECT'];
   delete env['WEAVE_PROJECT'];
   delete env['WANDB_API_KEY'];
+  delete env['FORGE_CLAUDE_CODE_AGENT_NAME'];
   delete env['WEAVE_AGENT_NAME'];
 
   return new Promise((resolve, reject) => {
@@ -124,15 +126,15 @@ suite('weave-claude-code status (pretty)', () => {
     assert.doesNotMatch(r.stdout, /Daemon/);
   });
 
-  test('missing weave_project: prints ✗ and "Configuration incomplete" summary', async () => {
+  test('missing project: prints ✗ and "Configuration incomplete" summary', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'pretty-no-project-'));
-    writeSettings(home, { weave_project: null });
+    writeSettings(home, { project: null });
 
     const r = await runStatus(home);
     assert.equal(r.code, 0, `expected exit 0 (config-incomplete is not fatal); stdout=${r.stdout}`);
 
     assert.match(r.stdout, /✗ Project\s+not set/);
-    assert.match(r.stdout, /Set [^\n]*weave_project to start tracing/);
+    assert.match(r.stdout, /Set [^\n]*project to start tracing/);
     assert.doesNotMatch(r.stdout, /ready to trace/);
   });
 
@@ -160,15 +162,15 @@ suite('weave-claude-code status --json', () => {
     const parsed = JSON.parse(r.stdout) as Record<string, unknown>;
     // Required top-level fields per the documented schema.
     for (const key of [
-      'version', 'settings_file', 'cli_path', 'weave_project', 'weave_project_source',
+      'version', 'settings_file', 'cli_path', 'project', 'project_source',
       'api_key_configured', 'agent_name', 'plugin_source', 'daemon_socket', 'daemon', 'log_file', 'ready_to_trace',
       'view_traces_url',
     ]) {
       assert.ok(key in parsed, `missing required field: ${key}`);
     }
     assert.equal(typeof parsed['version'], 'string');
-    assert.equal(parsed['weave_project'], 'fake-entity/fake-project');
-    assert.equal(parsed['weave_project_source'], 'settings.json');
+    assert.equal(parsed['project'], 'fake-entity/fake-project');
+    assert.equal(parsed['project_source'], 'settings.json');
     assert.equal(parsed['api_key_configured'], true);
     assert.equal(parsed['agent_name'], 'claude-code');
 
@@ -200,8 +202,8 @@ suite('weave-claude-code status --json', () => {
     assert.notEqual(r.code, 0, `expected non-zero exit when config is missing; stdout=${r.stdout}`);
 
     const parsed = JSON.parse(r.stdout) as Record<string, unknown>;
-    assert.equal(parsed['weave_project'], null);
-    assert.equal(parsed['weave_project_source'], 'not set');
+    assert.equal(parsed['project'], null);
+    assert.equal(parsed['project_source'], 'not set');
     assert.equal(parsed['api_key_configured'], false);
     assert.equal(parsed['ready_to_trace'], false);
     assert.equal(parsed['view_traces_url'], null);

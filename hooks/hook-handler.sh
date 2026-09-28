@@ -44,18 +44,19 @@ if [ ! -f "${SETTINGS_FILE}" ]; then
 ========================================
 ERROR | Plugin not configured.
 Run:  weave-claude-code install
-Then: weave-claude-code config set weave_project ENTITY/PROJECT
+Then: weave-claude-code config set project ENTITY/PROJECT
 ========================================
 EOF
   exit 0
 fi
 
-# ── Weave configuration check ─────────────────────────────────────────────────
-# Skip silently if weave_project or WANDB_API_KEY is not set — the daemon would
+# ── tracing configuration check ───────────────────────────────────────────────
+# Skip silently if project or WANDB_API_KEY is not set: the daemon would
 # refuse to start anyway, and we avoid a 5 s socket-wait timeout per event.
+# WEAVE_PROJECT is the pre-rename name of FORGE_TRACE_PROJECT.
 
-WEAVE_PROJECT_VALUE=$(grep -o '"weave_project" *: *"[^"]*"' "${SETTINGS_FILE}" 2>/dev/null | grep -o '"[^"]*"$' | tr -d '"')
-if [ -z "${WEAVE_PROJECT_VALUE}" ] && [ -z "${WEAVE_PROJECT:-}" ]; then
+PROJECT_VALUE=$(grep -o '"project" *: *"[^"]*"' "${SETTINGS_FILE}" 2>/dev/null | grep -o '"[^"]*"$' | tr -d '"')
+if [ -z "${PROJECT_VALUE}" ] && [ -z "${FORGE_TRACE_PROJECT:-}" ] && [ -z "${WEAVE_PROJECT:-}" ]; then
   exit 0
 fi
 

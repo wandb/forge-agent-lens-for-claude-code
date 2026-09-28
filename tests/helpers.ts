@@ -33,7 +33,7 @@ export function seedConfigHome(label: string): { home: string; settingsFile: str
   fs.writeFileSync(settingsFile, JSON.stringify({
     log_file: path.join(dir, 'logs', 'daemon.log'),
     daemon_socket: path.join(dir, 'daemon.sock'),
-    weave_project: null,
+    project: null,
     wandb_api_key: null,
     debug: false,
     installed_at: '2026-01-01T00:00:00Z',
@@ -51,7 +51,9 @@ export function runCli(home: string, args: string[], extraEnv: Record<string, st
   return new Promise((resolve, reject) => {
     const env = { ...process.env, HOME: home };
     delete env.WANDB_API_KEY;
+    delete env.FORGE_TRACE_PROJECT;
     delete env.WEAVE_PROJECT;
+    delete env.FORGE_CLAUDE_CODE_AGENT_NAME;
     delete env.WEAVE_AGENT_NAME;
     Object.assign(env, extraEnv);
     const child = spawn(process.execPath, ['--import', 'tsx', CLI, ...args], { cwd: REPO_ROOT, env });
@@ -100,7 +102,7 @@ let genaiExporter: InMemorySpanExporter | undefined;
 export async function initWeaveInMemory(): Promise<InMemorySpanExporter> {
   if (!genaiExporter) {
     const settings: Settings = {
-      log_file: '', daemon_socket: '', weave_project: 'e/p', wandb_api_key: 'fake-key-for-test',
+      log_file: '', daemon_socket: '', project: 'e/p', wandb_api_key: 'fake-key-for-test',
       agent_name: null, debug: false, installed_at: '', version: '0.0.0-test',
     };
     process.env.WANDB_API_KEY = resolveApiKey(settings).value ?? '';
@@ -181,7 +183,7 @@ export function assistantEntry(
 export function makeGenaiDaemon(agentName = 'claude-code'): DaemonDriver {
   const logFile = path.join(os.tmpdir(), `wcp-genai-${process.pid}.log`);
   const d = new Daemon('/tmp/unused.sock', logFile, {
-    weaveProject: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName, debug: false,
+    project: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName, debug: false,
   });
   (d as unknown as { tracingEnabled: boolean }).tracingEnabled = true;
   return d as unknown as DaemonDriver;
@@ -270,7 +272,7 @@ export interface TestDaemon {
 /**
  * Start a daemon in a throwaway home and wait until its socket is accepting.
  * `opts.settings` is merged into the generated settings.json; `opts.env` into
- * the daemon's environment (e.g. WEAVE_INACTIVITY_MS).
+ * the daemon's environment (e.g. FORGE_CLAUDE_CODE_INACTIVITY_MS).
  */
 export async function startTestDaemon(
   opts: { settings?: Record<string, unknown>; env?: Record<string, string> } = {},
@@ -283,7 +285,7 @@ export async function startTestDaemon(
   fs.writeFileSync(
     path.join(configDir, 'settings.json'),
     JSON.stringify({
-      weave_project: 'test/test',
+      project: 'test/test',
       wandb_api_key: 'fake-key-for-test',
       daemon_socket: socketPath,
       log_file: logPath,

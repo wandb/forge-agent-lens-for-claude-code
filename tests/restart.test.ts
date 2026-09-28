@@ -35,7 +35,7 @@ after(async () => {
 
 function newHome(
   label: string,
-  cfg: { weave_project?: string | null; wandb_api_key?: string | null; agent_name?: string | null },
+  cfg: { project?: string | null; wandb_api_key?: string | null; agent_name?: string | null },
 ): { home: string; socketPath: string } {
   const home = fs.mkdtempSync(`/tmp/wcp-${label}-`);
   homes.push(home);
@@ -46,7 +46,7 @@ function newHome(
   fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({
     log_file: path.join(dir, 'logs', 'daemon.log'),
     daemon_socket: socketPath,
-    weave_project: cfg.weave_project ?? null,
+    project: cfg.project ?? null,
     wandb_api_key: cfg.wandb_api_key ?? null,
     agent_name: cfg.agent_name ?? null,
     debug: false,
@@ -60,12 +60,14 @@ function runRestart(home: string): Promise<{ stdout: string; stderr: string; cod
   return new Promise((resolve, reject) => {
     const env = { ...process.env, HOME: home };
     delete env.WANDB_API_KEY;
+    delete env.FORGE_TRACE_PROJECT;
     delete env.WEAVE_PROJECT;
+    delete env.FORGE_CLAUDE_CODE_AGENT_NAME;
     delete env.WEAVE_AGENT_NAME;
     // Keep the OTel exporter from reaching real wandb.ai; refuse fast instead.
     env.WANDB_BASE_URL = 'http://127.0.0.1:1';
     // Backstop: a daemon leaked by an assertion failure self-exits quickly.
-    env.WEAVE_INACTIVITY_MS = '20000';
+    env.FORGE_CLAUDE_CODE_INACTIVITY_MS = '20000';
     const child = spawn(process.execPath, ['--import', 'tsx', CLI, 'restart'], { cwd: REPO_ROOT, env });
     let stdout = '';
     let stderr = '';
@@ -90,13 +92,13 @@ suite('weave-claude-code restart', () => {
     const { home, socketPath } = newHome('restart-unconfigured', {});
     const r = await runRestart(home);
     assert.notEqual(r.code, 0, `expected non-zero exit; stdout=${r.stdout} stderr=${r.stderr}`);
-    assert.match(r.stdout + r.stderr, /missing configuration|weave_project/i);
+    assert.match(r.stdout + r.stderr, /missing configuration|project/i);
     assert.equal(fs.existsSync(socketPath), false, 'no daemon socket should be created when unconfigured');
   });
 
   test('stops a running daemon and starts a fresh one', async () => {
     const { home, socketPath } = newHome('restart-happy', {
-      weave_project: 'fake-entity/fake-project',
+      project: 'fake-entity/fake-project',
       wandb_api_key: 'fake-api-key',
     });
 

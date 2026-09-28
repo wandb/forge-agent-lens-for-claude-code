@@ -26,7 +26,7 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
   assert.ok(address && typeof address !== 'string');
   const daemon = await startTestDaemon({ env: {
     WANDB_API_KEY: 'wire-test-key',
-    WEAVE_PROJECT: 'test/test',
+    FORGE_TRACE_PROJECT: 'test/test',
     WF_TRACE_SERVER_URL: `http://127.0.0.1:${address.port}`,
   } });
   try {

@@ -43,7 +43,8 @@ function failIfError(
 
 export interface Settings {
   log_file: string;
-  weave_project: string | null;
+  /** `entity/project` that receives traces. */
+  project: string | null;
   wandb_api_key: string | null;
   /** Overrides the name shown in Weave's Agents view (the top-level agent).
    *  null falls back to `DEFAULT_AGENT_NAME` ('claude-code'). Settings
@@ -154,7 +155,7 @@ export function createConfig(configDir: string): ConfigResult {
 
   const settings: Settings = {
     log_file: logFile,
-    weave_project: null,
+    project: null,
     wandb_api_key: null,
     agent_name: null,
     debug: false,

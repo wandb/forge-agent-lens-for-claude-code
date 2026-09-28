@@ -22,7 +22,7 @@ type DaemonInternals = {
 
 function makeDaemon(socketPath: string, dir: string): DaemonInternals {
   return new Daemon(socketPath, path.join(dir, 'daemon.log'), {
-    weaveProject: null,
+    project: null,
     apiKey: null,
     baseUrl: 'https://x',
     agentName: 'claude-code',
