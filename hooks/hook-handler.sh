@@ -5,18 +5,18 @@
 # SPDX-PackageName: weave-claude-code
 
 # Receives a Claude Code lifecycle event on stdin (JSON) and forwards it to the
-# Weave daemon via Unix socket. Starts the daemon first if it is not running.
+# Forge Claude Code daemon via Unix socket. Starts the daemon first if it is not running.
 #
 # Assumptions:
-#   - weave-claude-code is on PATH (installed globally via npm install -g),
+#   - forge-claude-code is on PATH (installed globally via npm install -g),
 #     which implies node is on PATH too.
 #
-# Errors are written to ~/.weave-claude-code/logs/hook-errors.log.
+# Errors are written to ~/.forge-claude-code/logs/hook-errors.log.
 # The script always exits 0 so it never disrupts Claude Code.
 
 set -uo pipefail
 
-CONFIG_DIR="${HOME}/.weave-claude-code"
+CONFIG_DIR="${HOME}/.forge-claude-code"
 SETTINGS_FILE="${CONFIG_DIR}/settings.json"
 ERROR_LOG="${CONFIG_DIR}/logs/hook-errors.log"
 SOCKET_PATH="${CONFIG_DIR}/daemon.sock"
@@ -32,8 +32,8 @@ mkdir -p "${CONFIG_DIR}/logs"
 
 # ── dependency checks ─────────────────────────────────────────────────────────
 
-if ! command -v weave-claude-code >/dev/null 2>&1; then
-  echo "$(date -Iseconds) | ERROR | weave-claude-code not found in PATH. Run: npm install -g weave-claude-code" >> "${ERROR_LOG}"
+if ! command -v forge-claude-code >/dev/null 2>&1; then
+  echo "$(date -Iseconds) | ERROR | forge-claude-code not found in PATH. Run: npm install -g forge-claude-code" >> "${ERROR_LOG}"
   exit 0
 fi
 
@@ -43,8 +43,8 @@ if [ ! -f "${SETTINGS_FILE}" ]; then
   cat >> "${ERROR_LOG}" << 'EOF'
 ========================================
 ERROR | Plugin not configured.
-Run:  weave-claude-code install
-Then: weave-claude-code config set project ENTITY/PROJECT
+Run:  forge-claude-code install
+Then: forge-claude-code config set project ENTITY/PROJECT
 ========================================
 EOF
   exit 0
@@ -86,7 +86,7 @@ if ! is_daemon_alive; then
   # `disown` detaches it from this shell's job table. (macOS has no `setsid`, so
   # nohup+disown is the portable detach.) The daemon still self-reaps via its
   # inactivity timeout, so it won't linger forever.
-  nohup weave-claude-code daemon >> "${ERROR_LOG}" 2>&1 &
+  nohup forge-claude-code daemon >> "${ERROR_LOG}" 2>&1 &
   disown 2>/dev/null || true
 
   # Wait up to 5 s (50 × 100 ms) for the daemon to accept connections.
@@ -100,8 +100,8 @@ if ! is_daemon_alive; then
   if ! is_daemon_alive; then
     cat >> "${ERROR_LOG}" << EOF
 $(date -Iseconds) | ERROR | Daemon did not start within 5 s.
-  Diagnose: weave-claude-code status
-  Logs:     weave-claude-code logs --tail 50
+  Diagnose: forge-claude-code status
+  Logs:     forge-claude-code logs --tail 50
 EOF
     exit 0
   fi
@@ -109,10 +109,9 @@ fi
 
 # ── forward event to daemon ───────────────────────────────────────────────────
 #
-# hook-socket.mjs send reads stdin, optionally merges WEAVE_PARENT_CALL_ID and
-# WEAVE_TRACE_ID env vars into the payload, then writes to the socket. It exits
-# 1 on connect failure; we log that to ERROR_LOG but always exit 0 so a hook
-# failure never disrupts Claude Code.
+# hook-socket.mjs send writes stdin to the socket. It exits 1 on connect
+# failure; we log that to ERROR_LOG but always exit 0 so a hook failure never
+# disrupts Claude Code.
 
 node "${HOOK_SOCKET}" send "${SOCKET_PATH}" 2>> "${ERROR_LOG}" || {
   echo "$(date -Iseconds) | ERROR | Failed to send event to daemon" >> "${ERROR_LOG}"

@@ -32,7 +32,7 @@ before(() => { scratch = fs.mkdtempSync('/tmp/wcp-drift-'); });
 after(() => { fs.rmSync(scratch, { recursive: true, force: true }); });
 
 function writeSettings(home: string, overrides: Record<string, unknown> = {}): { settings: Record<string, unknown>; socketPath: string } {
-  const dir = path.join(home, '.weave-claude-code');
+  const dir = path.join(home, '.forge-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const socketPath = path.join(dir, 'daemon.sock');
   const settings = {

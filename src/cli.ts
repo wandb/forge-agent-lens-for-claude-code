@@ -10,6 +10,8 @@ import * as os from 'os';
 import { spawnSync, spawn } from 'child_process';
 import {
   CONFIG_DIR,
+  LEGACY_CONFIG_DIR,
+  LEGACY_MARKETPLACE_NAME,
   SETTINGS_FILE,
   MARKETPLACE_NAME,
   VERSION,
@@ -18,6 +20,7 @@ import {
   PluginStatus,
   RemovalStatus,
   createConfig,
+  migrateLegacyConfig,
   registerPlugin,
   unregisterPlugin,
   loadSettings,
@@ -91,6 +94,7 @@ async function cmdInstall(
   nonInteractive: boolean,
   source: InstallSource,
 ): Promise<void> {
+  const migrated = !force && migrateLegacyConfig(CONFIG_DIR, LEGACY_CONFIG_DIR);
   let configResult;
   if (fs.existsSync(SETTINGS_FILE) && !force) {
     let settings: Settings;
@@ -106,7 +110,7 @@ async function cmdInstall(
       logFile: settings.log_file,
     };
 
-    console.log('✓ Configuration already exists');
+    console.log(migrated ? `✓ Configuration migrated from ${LEGACY_CONFIG_DIR}` : '✓ Configuration already exists');
     console.log(`  Config: ${configResult.settingsFile}`);
     console.log(`  Logs:   ${configResult.logFile}`);
     console.log('  Re-validating marketplace and plugin installation...');
@@ -145,6 +149,16 @@ async function cmdInstall(
     console.log(`✓ Plugin already installed`);
   } else {
     console.log(`✓ Plugin installed`);
+  }
+
+  if (pluginResult.legacyMarketplace === RemovalStatus.Removed) {
+    console.log(`✓ Removed the ${LEGACY_MARKETPLACE_NAME} marketplace and its plugin`);
+  } else if (pluginResult.legacyMarketplace === RemovalStatus.Failed) {
+    console.warn(`⚠ Could not remove the ${LEGACY_MARKETPLACE_NAME} marketplace, so its plugin still traces every session`);
+    console.warn(`  Run: claude plugin marketplace remove ${LEGACY_MARKETPLACE_NAME}`);
+  }
+  if (migrated || pluginResult.legacyMarketplace !== RemovalStatus.AlreadyAbsent) {
+    console.log(`  The old CLI is no longer used: npm uninstall -g ${LEGACY_MARKETPLACE_NAME}`);
   }
 
   // Interactive prompts for missing config

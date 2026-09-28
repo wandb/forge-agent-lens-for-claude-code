@@ -27,7 +27,7 @@ const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
  */
 export function seedConfigHome(label: string): { home: string; settingsFile: string } {
   const home = fs.mkdtempSync(`/tmp/wcp-${label}-`);
-  const dir = path.join(home, '.weave-claude-code');
+  const dir = path.join(home, '.forge-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const settingsFile = path.join(dir, 'settings.json');
   fs.writeFileSync(settingsFile, JSON.stringify({
@@ -278,7 +278,7 @@ export async function startTestDaemon(
   opts: { settings?: Record<string, unknown>; env?: Record<string, string> } = {},
 ): Promise<TestDaemon> {
   const home = fs.mkdtempSync(path.join(os.homedir(), '.weave-daemontest-'));
-  const configDir = path.join(home, '.weave-claude-code');
+  const configDir = path.join(home, '.forge-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });

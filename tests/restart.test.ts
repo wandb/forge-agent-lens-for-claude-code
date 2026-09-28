@@ -39,7 +39,7 @@ function newHome(
 ): { home: string; socketPath: string } {
   const home = fs.mkdtempSync(`/tmp/wcp-${label}-`);
   homes.push(home);
-  const dir = path.join(home, '.weave-claude-code');
+  const dir = path.join(home, '.forge-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const socketPath = path.join(dir, 'daemon.sock');
   sockets.push(socketPath);

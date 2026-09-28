@@ -30,7 +30,7 @@ interface SettingsOverrides {
 }
 
 function writeSettings(home: string, overrides: SettingsOverrides = {}): { socketPath: string; logFile: string } {
-  const configDir = path.join(home, '.weave-claude-code');
+  const configDir = path.join(home, '.forge-claude-code');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });
   const socketPath = path.join(configDir, 'daemon.sock');
   const logFile = path.join(configDir, 'logs', 'daemon.log');
@@ -107,7 +107,7 @@ suite('weave-claude-code status (pretty)', () => {
     assert.notEqual(r.code, 0, `expected non-zero exit when settings is missing; stdout=${r.stdout}`);
 
     assert.match(r.stdout, /Weave Claude Code — not configured/);
-    assert.match(r.stdout, /No config at .+\.weave-claude-code\/settings\.json/);
+    assert.match(r.stdout, /No config at .+\.forge-claude-code\/settings\.json/);
     assert.match(r.stdout, /weave-claude-code install/);
     // Other status sections should be suppressed: gather returns early before probing.
     assert.doesNotMatch(r.stdout, /Daemon/);
@@ -115,7 +115,7 @@ suite('weave-claude-code status (pretty)', () => {
 
   test('unreadable settings file: prints "Configuration: failed to read" and exits non-zero', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'pretty-unreadable-'));
-    const configDir = path.join(home, '.weave-claude-code');
+    const configDir = path.join(home, '.forge-claude-code');
     fs.mkdirSync(configDir, { recursive: true });
     fs.writeFileSync(path.join(configDir, 'settings.json'), '{ this is not valid JSON');
 

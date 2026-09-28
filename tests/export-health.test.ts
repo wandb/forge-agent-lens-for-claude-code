@@ -39,7 +39,7 @@ before(() => { scratch = fs.mkdtempSync('/tmp/wcp-export-'); });
 after(() => { fs.rmSync(scratch, { recursive: true, force: true }); });
 
 function writeSettings(home: string): { socketPath: string } {
-  const dir = path.join(home, '.weave-claude-code');
+  const dir = path.join(home, '.forge-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const socketPath = path.join(dir, 'daemon.sock');
   fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({

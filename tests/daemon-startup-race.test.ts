@@ -32,7 +32,7 @@ const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 
 test('a herd of concurrent daemon starts crashes nobody and leaves exactly one listener', async () => {
   const home = fs.mkdtempSync(path.join(os.homedir(), '.weave-herd-'));
-  const configDir = path.join(home, '.weave-claude-code');
+  const configDir = path.join(home, '.forge-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });

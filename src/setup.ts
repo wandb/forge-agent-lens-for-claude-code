@@ -103,6 +103,8 @@ export interface PluginResult {
   refBefore: string | null;
   /** The marketplace ref Claude Code has registered after this run. */
   refAfter: string | null;
+  /** Removal of the pre-rename marketplace, whose plugin would otherwise keep firing hooks. */
+  legacyMarketplace: RemovalStatus;
 }
 
 export enum RemovalStatus {
@@ -118,8 +120,10 @@ export interface UninstallResult {
   pluginError?: string;
 }
 
-export const CONFIG_DIR = path.join(os.homedir(), '.weave-claude-code');
+export const CONFIG_DIR = path.join(os.homedir(), '.forge-claude-code');
 export const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
+/** Config dir used before the rename from weave-claude-code. */
+export const LEGACY_CONFIG_DIR = path.join(os.homedir(), '.weave-claude-code');
 
 // Claude Code plugin marketplace coordinates. Pin installs to a release tag so
 // new users never consume whatever happens to be on the default branch at
@@ -127,15 +131,16 @@ export const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 export const MARKETPLACE_REPO = 'wandb/weave-claude-code';
 export const MARKETPLACE_REF = `v${VERSION}`;
 export const MARKETPLACE_SOURCE = `${MARKETPLACE_REPO}#${MARKETPLACE_REF}`;
-export const MARKETPLACE_NAME = 'weave-claude-code';
-export const PLUGIN_NAME = 'weave';
+export const MARKETPLACE_NAME = 'forge-claude-code';
+export const PLUGIN_NAME = 'forge';
+export const LEGACY_MARKETPLACE_NAME = 'weave-claude-code';
 
 // The npm package name shipped to the registry (matches package.json#name).
 // Coincidentally equal to MARKETPLACE_NAME today but a distinct concept: the
 // marketplace name lives in .claude-plugin/marketplace.json, the npm package
 // name lives in package.json. Kept separate so renaming one does not silently
 // break the other.
-const NPM_PACKAGE_NAME = 'weave-claude-code';
+const NPM_PACKAGE_NAME = 'forge-claude-code';
 
 /**
  * Create (or recreate) the config directory, log directory, and settings.json.
@@ -164,14 +169,41 @@ export function createConfig(configDir: string): ConfigResult {
     daemon_socket: path.join(configDir, 'daemon.sock'),
   };
 
-  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
-  fs.chmodSync(settingsFile, 0o600);
+  writeSettings(settingsFile, settings);
 
   return { settingsFile, logFile };
 }
 
+/** Settings fields as written before the rename from weave-claude-code. */
+type LegacySettings = {
+  weave_project?: string | null;
+  wandb_api_key?: string | null;
+  agent_name?: string | null;
+  debug?: boolean;
+};
+
 /**
- * Locate the npm-installed weave-claude-code package tree, or null if the
+ * Carry a pre-rename config into `configDir`, rebuilding its log and socket
+ * paths there so the new daemon never binds the old daemon's socket. No-op
+ * when `configDir` already has settings or `legacyDir` has none.
+ */
+export function migrateLegacyConfig(configDir: string, legacyDir: string): boolean {
+  if (fs.existsSync(path.join(configDir, 'settings.json'))) return false;
+  const legacy = readJsonFile(path.join(legacyDir, 'settings.json')) as LegacySettings | null;
+  if (!legacy) return false;
+
+  const { settingsFile } = createConfig(configDir);
+  const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8')) as Settings;
+  settings.project = legacy.weave_project ?? null;
+  settings.wandb_api_key = legacy.wandb_api_key ?? null;
+  settings.agent_name = legacy.agent_name ?? null;
+  settings.debug = legacy.debug === true;
+  writeSettings(settingsFile, settings);
+  return true;
+}
+
+/**
+ * Locate the npm-installed forge-claude-code package tree, or null if the
  * package isn't installed globally. Used by `InstallSource.Local` to register
  * the marketplace from disk instead of cloning from GitHub.
  *
@@ -251,9 +283,17 @@ function isRawDirectorySource(s: Record<string, unknown>): s is RawDirectorySour
  * throwing so a future Claude Code schema change degrades to "Source: not
  * registered" rather than crashing status.
  */
+function knownMarketplacesPath(): string {
+  return path.join(os.homedir(), '.claude', 'plugins', 'known_marketplaces.json');
+}
+
+function isMarketplaceRegistered(marketplaceName: string): boolean {
+  const raw = readJsonFile(knownMarketplacesPath());
+  return typeof raw === 'object' && raw !== null && marketplaceName in raw;
+}
+
 export function readRegisteredPluginSource(marketplaceName: string): PluginSource | null {
-  const knownPath = path.join(os.homedir(), '.claude', 'plugins', 'known_marketplaces.json');
-  const raw = readJsonFile(knownPath);
+  const raw = readJsonFile(knownMarketplacesPath());
   if (raw === null) return null;
   const entry = (raw as Record<string, { source?: Record<string, unknown> }>)[marketplaceName];
   const source = entry?.source;
@@ -300,9 +340,9 @@ function resolveMarketplaceArg(source: InstallSource, logFile: string): string {
   const localPath = findLocalPluginPath();
   if (!localPath) {
     const msg = [
-      '--source=local requires weave-claude-code to be installed globally via npm,',
-      "but `npm root -g` did not yield a weave-claude-code/.claude-plugin/marketplace.json.",
-      'Run: npm install -g weave-claude-code',
+      '--source=local requires forge-claude-code to be installed globally via npm,',
+      "but `npm root -g` did not yield a forge-claude-code/.claude-plugin/marketplace.json.",
+      'Run: npm install -g forge-claude-code',
     ].join('\n');
     appendToLog(logFile, 'ERROR', msg);
     throw new Error(msg);
@@ -320,7 +360,7 @@ export function registerPlugin(
       "'claude' CLI not found in PATH.",
       'Install Claude Code before running this command:',
       '  https://claude.ai/download',
-      'Then re-run: weave-claude-code install',
+      'Then re-run: forge-claude-code install',
     ].join('\n');
     appendToLog(logFile, 'ERROR', msg);
     throw new Error(msg);
@@ -342,7 +382,7 @@ export function registerPlugin(
   const refAfter = readRegisteredMarketplaceRef(MARKETPLACE_NAME);
   // Drift detection compares marketplace refs (version tags). Local sources
   // have no version tag (npm is the version-of-record), so skip the check and
-  // let the user re-run `npm install -g weave-claude-code` to upgrade.
+  // let the user re-run `npm install -g forge-claude-code` to upgrade.
   const refDrifted = source !== InstallSource.Local && refBefore !== null && refBefore !== refAfter;
 
   // Install plugin at user scope
@@ -362,7 +402,22 @@ export function registerPlugin(
     pluginUpdated,
     refBefore,
     refAfter,
+    legacyMarketplace: removeLegacyMarketplace(claudePath, logFile),
   };
+}
+
+/** Removing the marketplace also uninstalls its plugin. Runs after the new
+ *  plugin installed, so a failed install keeps the old one tracing. */
+function removeLegacyMarketplace(claudePath: string, logFile: string): RemovalStatus {
+  if (!isMarketplaceRegistered(LEGACY_MARKETPLACE_NAME)) return RemovalStatus.AlreadyAbsent;
+  const result = spawnSync(
+    claudePath,
+    ['plugin', 'marketplace', 'remove', LEGACY_MARKETPLACE_NAME],
+    CLAUDE_SPAWN_OPTS,
+  );
+  if (result.status === 0) return RemovalStatus.Removed;
+  appendToLog(logFile, 'ERROR', `Failed to remove marketplace '${LEGACY_MARKETPLACE_NAME}': ${combinedOutput(result).trim()}`);
+  return RemovalStatus.Failed;
 }
 
 /**
@@ -463,13 +518,18 @@ export function unregisterPlugin(): UninstallResult {
 
 export function loadSettings(): Settings {
   if (!fs.existsSync(SETTINGS_FILE)) {
-    throw new Error(`Settings not found at ${SETTINGS_FILE}\nRun: weave-claude-code install`);
+    throw new Error(`Settings not found at ${SETTINGS_FILE}\nRun: forge-claude-code install`);
   }
   return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) as Settings;
 }
 
 export function saveSettings(settings: Settings): void {
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
-  fs.chmodSync(SETTINGS_FILE, 0o600);
+  writeSettings(SETTINGS_FILE, settings);
+}
+
+/** The file holds the API key, so it stays owner-only. */
+function writeSettings(settingsFile: string, settings: Settings): void {
+  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+  fs.chmodSync(settingsFile, 0o600);
 }
