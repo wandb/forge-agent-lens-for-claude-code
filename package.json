@@ -16,7 +16,7 @@
     "setup-hooks": "node scripts/install-git-hooks.mjs"
   },
   "dependencies": {
-    "@coreweave/forge-sdk": "file:.context/coreweave-forge-sdk-0.1.0.tgz",
+    "@coreweave/forge-sdk": "0.1.0-beta.0",
     "@opentelemetry/api": "^1.9.1",
     "uuidv7": "1.2.1"
   },

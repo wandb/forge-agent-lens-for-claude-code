@@ -9,7 +9,7 @@ import type { MessagePart, SubAgent, Tool, Turn, Usage } from '@coreweave/forge-
 import { isTextBlock, isThinkingBlock, isRedactedThinkingBlock, isToolUseBlock } from './parser.js';
 import type { UsageSummary } from './parser.js';
 
-/** Weave's two public invoke-agent handles that can own chat, tool, and
+/** Forge's two public invoke-agent handles that can own chat, tool, and
  * subagent spans. The SDK does not currently export a common parent type. */
 export type SpanParent = Turn | SubAgent;
 

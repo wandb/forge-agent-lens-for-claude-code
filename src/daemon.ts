@@ -359,7 +359,7 @@ export class Daemon {
     this.hookHandler.finalizeForShutdown();
     if (this.tracingEnabled) {
       try {
-        await tracing.flushOTel();
+        await tracing.forceFlush();
       } catch (err) {
         const line = `Error flushing Forge SDK: ${err}`;
         this.exportHealth.record(line);

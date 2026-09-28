@@ -216,7 +216,7 @@ export function transcriptAssistantLine(
 }
 
 export function flushWeave(): Promise<void> {
-  return tracing.flushOTel();
+  return tracing.forceFlush();
 }
 
 /** Support both current and older OTel parent-span fields. */

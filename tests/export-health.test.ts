@@ -28,7 +28,7 @@ const DIAG_403 =
   'otel: {"stack":"OTLPExporterError: Forbidden\\n    at IncomingMessage.<anonymous> (/x/http-transport-utils.js:62:31)","message":"Forbidden","name":"OTLPExporterError","code":"403"}';
 const DIAG_401 =
   'otel: {"stack":"OTLPExporterError: Unauthorized\\n    at IncomingMessage.<anonymous> (/x/http-transport-utils.js:62:31)","message":"Unauthorized","name":"OTLPExporterError","code":"401"}';
-const FLUSH_ERROR = 'Error flushing Weave SDK: OTLPExporterError: Forbidden';
+const FLUSH_ERROR = 'Error flushing Forge SDK: OTLPExporterError: Forbidden';
 const UNRELATED_DIAG = 'otel: Accessing resource attributes before async attributes settled';
 
 let scratch: string;

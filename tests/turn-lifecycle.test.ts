@@ -120,7 +120,7 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
   const spans = exporter.getFinishedSpans();
   for (const span of spans) {
     assert.equal(span.attributes['weave.source'], 'forge-integration');
-    assert.equal(span.resource.attributes['weave.sdk.name'], 'forge');
+    assert.equal(span.resource.attributes['wandb.sdk.name'], 'forge');
   }
   const [turn] = turns(spans);
   const responseSpans = chats(spans);
@@ -316,8 +316,8 @@ test('a response still streaming parallel tool calls is not sent early', async (
   assert.equal(first.attributes[ATTR.OUTPUT_MESSAGES], JSON.stringify([{
     role: 'assistant',
     parts: [
-      { type: 'tool_call', toolCallId: 'tool-1', toolName: 'Bash', arguments: '{"command":"ls"}' },
-      { type: 'tool_call', toolCallId: 'tool-2', toolName: 'Bash', arguments: '{"command":"ls"}' },
+      { type: 'tool_call', id: 'tool-1', name: 'Bash', arguments: '{"command":"ls"}' },
+      { type: 'tool_call', id: 'tool-2', name: 'Bash', arguments: '{"command":"ls"}' },
     ],
   }]));
 });
