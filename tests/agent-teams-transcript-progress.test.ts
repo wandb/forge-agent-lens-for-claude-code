@@ -3,7 +3,7 @@
 // SPDX-PackageName: forge-claude-code
 
 import {
-  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushWeave, fs,
+  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushForge, fs,
   makeTranscript, postDispatch, preDispatch, teammateEntries, test, userEntry,
 } from './agent-team-test-helpers.ts';
 import {
@@ -101,7 +101,7 @@ test('provider progress advances within one turn and ignores non-provider growth
   ));
   await daemon.routeEvent(idle);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
     String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
@@ -144,7 +144,7 @@ test('a stale idle with only non-provider growth cannot confirm the next named A
     agent_id: agentId, agent_type: 'general-purpose', agent_transcript_path: subPath,
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const ordinary = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-after-stale-call');
@@ -181,7 +181,7 @@ test('idle history churn cannot evict persistent transcript progress', async (t)
   teammate.append({ type: 'progress', message: { role: 'system', content: 'no provider output' } });
   await daemon.routeEvent(idle);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'progress-eviction-call-2'), false);
@@ -204,7 +204,7 @@ test('file aliases cannot replay persistent transcript output', async (t) => {
   const alias = teammate.file.replace(/\.jsonl$/, '-alias.jsonl');
   fs.linkSync(teammate.file, alias);
   await daemon.routeEvent({ ...idle, transcript_path: alias });
-  await flushWeave();
+  await flushForge();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'progress-alias-call-2'), false);
@@ -233,7 +233,7 @@ test('a physical transcript cannot be relabeled to replay its output', async (t)
     prompt: 'second',
   });
   await daemon.routeEvent({ ...idle, team_name: 'renamed-team' });
-  await flushWeave();
+  await flushForge();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
@@ -271,7 +271,7 @@ test('persistent progress survives many other teammate transcripts', async (t) =
 
   await dispatch(daemon, sid, 'progress-capacity-persistent-2', 'second');
   await daemon.routeEvent(persistentIdle);
-  await flushWeave();
+  await flushForge();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
@@ -284,7 +284,7 @@ test('persistent progress survives many other teammate transcripts', async (t) =
     }),
   );
   await daemon.routeEvent(persistentIdle);
-  await flushWeave();
+  await flushForge();
   const resumed = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'progress-capacity-persistent-2');
@@ -303,7 +303,7 @@ test('persistent progress survives many other teammate transcripts', async (t) =
     hook_event_name: 'TeammateIdle', session_id: 'progress-capacity-new-member',
     transcript_path: fresh.file, team_name: TEAM, teammate_name: MEMBER,
   });
-  await flushWeave();
+  await flushForge();
   const freshAgent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'progress-capacity-new-call');
@@ -333,7 +333,7 @@ test('one persistent teammate session completes twice only after transcript grow
   );
   await daemon.routeEvent(idle);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
     String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]).startsWith('persistent-'));
@@ -380,7 +380,7 @@ test('each idle reads only the persistent transcript state it observed', async (
   const secondIdle = daemon.routeEvent(idle);
   await Promise.all([firstIdle, secondIdle]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
     String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])

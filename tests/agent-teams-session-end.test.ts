@@ -3,7 +3,7 @@
 // SPDX-PackageName: forge-claude-code
 
 import {
-  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushWeave,
+  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushForge,
   isTeammateTurn, makeTranscript, postDispatch, preDispatch, spanParentId,
   teammateEntries, test, userEntry,
 } from './agent-team-test-helpers.ts';
@@ -34,7 +34,7 @@ test('SessionEnd retains an exact team call despite optional metadata overflow',
     hook_event_name: 'TeammateIdle', session_id: 'fallback-teammate',
     transcript_path: teammate.file, team_name: TEAM, teammate_name: MEMBER,
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
@@ -67,7 +67,7 @@ test('generic implicit team work survives SessionEnd until TeammateIdle', async 
     hook_event_name: 'TeammateIdle', session_id: 'implicit-late-member',
     transcript_path: teammate.file, team_name: TEAM, teammate_name: MEMBER,
   });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-late-call');
@@ -94,7 +94,7 @@ test('ambiguous same-session markers fail closed and shutdown orphans all team m
   });
   await dispatch(daemon, sid, 'shutdown-dispatch', 'remote task');
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => isTeammateTurn(span)), false);

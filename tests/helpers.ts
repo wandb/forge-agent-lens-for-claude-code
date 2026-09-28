@@ -99,7 +99,7 @@ export function writeKnownMarketplace(home: string, source: Record<string, unkno
 
 let genaiExporter: InMemorySpanExporter | undefined;
 
-export async function initWeaveInMemory(): Promise<InMemorySpanExporter> {
+export async function initForgeInMemory(): Promise<InMemorySpanExporter> {
   if (!genaiExporter) {
     const settings: Settings = {
       log_file: '', daemon_socket: '', project: 'e/p', wandb_api_key: 'fake-key-for-test',
@@ -131,7 +131,7 @@ export function makeTranscript(
   sessionId: string,
   label = 'trace',
 ): TranscriptHarness {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), `.weave-${label}-`));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), `.forge-${label}-`));
   const file = path.join(dir, `${sessionId}.jsonl`);
   fs.writeFileSync(file, '');
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -217,7 +217,7 @@ export function transcriptAssistantLine(
   });
 }
 
-export function flushWeave(): Promise<void> {
+export function flushForge(): Promise<void> {
   return tracing.forceFlush();
 }
 
@@ -277,7 +277,7 @@ export interface TestDaemon {
 export async function startTestDaemon(
   opts: { settings?: Record<string, unknown>; env?: Record<string, string> } = {},
 ): Promise<TestDaemon> {
-  const home = fs.mkdtempSync(path.join(os.homedir(), '.weave-daemontest-'));
+  const home = fs.mkdtempSync(path.join(os.homedir(), '.forge-daemontest-'));
   const configDir = path.join(home, '.forge-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');

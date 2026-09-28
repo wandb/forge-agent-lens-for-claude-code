@@ -4,7 +4,7 @@
 
 import {
   ATTR, MEMBER, TEAM, TeamCoordinator, assert, assistantEntry, coordinator, dispatch,
-  flushWeave, fs, initWeaveInMemory, makeGenaiDaemon, makeTranscript, postDispatch,
+  flushForge, fs, initForgeInMemory, makeGenaiDaemon, makeTranscript, postDispatch,
   preDispatch, startQueueBlocker, teammateEntries, test, userEntry, writeMetadata,
 } from './agent-team-test-helpers.ts';
 
@@ -71,7 +71,7 @@ test('metadata correlation accepts a large injected first record', async (t) => 
     team_name: TEAM, teammate_name: MEMBER,
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'large-metadata-call');
@@ -103,7 +103,7 @@ test('an undeclared team alias does not swallow an unrelated lifecycle without s
     agent_id: agentId, agent_type: 'general-purpose',
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   assert.equal(exporter.getFinishedSpans().filter(span =>
     span.attributes[ATTR.AGENT_ID] === agentId).length, 1);
@@ -141,7 +141,7 @@ test('a matching prompt alone does not swallow an unrelated lifecycle', async (t
     transcript_path: teammate.file, team_name: TEAM, teammate_name: MEMBER,
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => span.attributes[ATTR.AGENT_ID] === agentId), true);
@@ -150,7 +150,7 @@ test('a matching prompt alone does not swallow an unrelated lifecycle', async (t
 });
 
 test('idle receipt snapshots a metadata-selected transcript', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const sid = 'team-metadata-boundary';
@@ -207,7 +207,7 @@ test('idle receipt snapshots a metadata-selected transcript', async (t) => {
     ...queuedDispatch, firstIdle, secondIdle,
   ]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
     String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
@@ -222,7 +222,7 @@ test('idle receipt snapshots a metadata-selected transcript', async (t) => {
 });
 
 test('ambiguous exact transcript evidence cannot fall through to a weaker owner', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const owners = [
@@ -256,7 +256,7 @@ test('ambiguous exact transcript evidence cannot fall through to a weaker owner'
     transcript_path: teammate.file, team_name: TEAM, teammate_name: MEMBER,
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'ambiguous-weak-msg'), false);
@@ -304,7 +304,7 @@ test('completed lifecycle history remains scoped to its exact team', async (t) =
     transcript_path: teamYPath, team_name: 'team-y', teammate_name: MEMBER,
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.ok(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'team-y-msg'));

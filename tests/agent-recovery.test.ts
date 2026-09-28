@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { ATTR } from '../src/genaiSpans.ts';
 import {
   assistantEntry,
-  initWeaveInMemory,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -16,7 +16,7 @@ import {
 import { finish } from './agent-test-helpers.ts';
 
 test('declared and wildcard Agent candidates with the same prompt stay ambiguous', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-mixed-type-candidates';
   const agentId = 'mixed-type-agent';
@@ -56,7 +56,7 @@ test('declared and wildcard Agent candidates with the same prompt stay ambiguous
 });
 
 test('exact prompt beyond the first 64 KiB selects the right Agent dispatch', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-exact-prompt';
   const agentId = 'exact-agent';
@@ -106,7 +106,7 @@ test('exact prompt beyond the first 64 KiB selects the right Agent dispatch', as
 });
 
 test('prefix-colliding restart prompts remain separate partial Agent markers', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-incompatible-recovery';
   const agentId = 'prefix-agent';
@@ -144,7 +144,7 @@ test('prefix-colliding restart prompts remain separate partial Agent markers', a
 });
 
 test('ambiguous prompt correlation never fabricates a third marker', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-ambiguous';
   const agentId = 'ambiguous-agent';
@@ -185,7 +185,7 @@ test('ambiguous prompt correlation never fabricates a third marker', async (t) =
 });
 
 test('restart-first SubagentStart recovers a parent for child hooks', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-recovery-start-first';
   const agentId = 'start-first-agent';
@@ -237,7 +237,7 @@ test('restart-first SubagentStart recovers a parent for child hooks', async (t) 
 });
 
 test('a Stop-first recovered Agent keeps its prompt turn open', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-recovery-retained-turn';
   const transcript = makeTranscript(t, sid, sid);
@@ -290,7 +290,7 @@ test('a Stop-first recovered Agent keeps its prompt turn open', async (t) => {
 });
 
 test('restart recovery keeps a later Agent call separate', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-recovery-separate';
   const agentId = 'recovered-agent';
@@ -354,7 +354,7 @@ test('restart recovery keeps a later Agent call separate', async (t) => {
 // A Stop-first restart recovers an Agent by agent_id but never learns its
 // tool_use_id, so the late Agent PostToolUse has to join that marker.
 test('a Stop-first recovered Agent adopts its late PostToolUse', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-stop-first-adopts';
   const agentId = 'stop-first-agent';
@@ -398,7 +398,7 @@ test('a Stop-first recovered Agent adopts its late PostToolUse', async (t) => {
 });
 
 test('a Stop-first recovered Agent ignores a PostToolUse for a different prompt', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-stop-first-other-prompt';
   const agentId = 'other-prompt-agent';
@@ -429,7 +429,7 @@ test('a Stop-first recovered Agent ignores a PostToolUse for a different prompt'
 });
 
 test('ambiguous Stop-first Agent candidates are not guessed', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-stop-first-ambiguous';
   const transcript = makeTranscript(t, sid, sid);
@@ -469,7 +469,7 @@ test('ambiguous Stop-first Agent candidates are not guessed', async (t) => {
 // resolves the turn holding its tool_use_id. Those differ when the dispatch
 // lives in an earlier transcript turn, and the marker must still be adopted.
 test('a Stop-first recovered Agent adopts a late Post whose dispatch is in an earlier turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-stop-first-earlier-turn';
   const agentId = 'earlier-turn-agent';

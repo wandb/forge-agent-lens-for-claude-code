@@ -3,13 +3,13 @@
 // SPDX-PackageName: forge-claude-code
 
 import {
-  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushWeave, fs,
-  initWeaveInMemory, isTeammateTurn, makeGenaiDaemon, makeTranscript, postDispatch,
+  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushForge, fs,
+  initForgeInMemory, isTeammateTurn, makeGenaiDaemon, makeTranscript, postDispatch,
   preDispatch, startQueueBlocker, teammateEntries, test, userEntry, writeMetadata,
 } from './agent-team-test-helpers.ts';
 
 test('restart-first receipt stages metadata before queued reconstruction', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const sid = 'team-restart-receipt-owner';
@@ -38,7 +38,7 @@ test('restart-first receipt stages metadata before queued reconstruction', async
 
   await Promise.all([blocking, post, idle]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-receipt-call');
@@ -51,7 +51,7 @@ test('restart-first receipt stages metadata before queued reconstruction', async
 });
 
 test('queued duplicate SessionStart paths preserve the first owner root', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const sid = 'team-conflicting-start-owner';
@@ -93,7 +93,7 @@ test('queued duplicate SessionStart paths preserve the first owner root', async 
 
   await Promise.all([blocking, ...queued]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'conflicting-start-call');
@@ -124,12 +124,12 @@ test('an idle older than a later normal Pre cannot consume that future dispatch'
     hook_event_name: 'PostToolUse', session_id: sid, tool_use_id: 'later-call',
     tool_name: 'Agent', tool_input: input, tool_response: 'dispatched',
   }, 3);
-  await flushWeave();
+  await flushForge();
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'stale-msg'), false);
 
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'later-call');
   assert.ok(agent);
@@ -151,7 +151,7 @@ test('restart-first Agent Post registers its dispatch and consumes an earlier id
     tool_response: 'dispatched',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-team-call');
@@ -180,14 +180,14 @@ test('partial teammate transcript retries without consuming the dispatch', async
   };
 
   await daemon.routeEvent(idle);
-  await flushWeave();
+  await flushForge();
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'partial-team-call'), false);
 
   fs.appendFileSync(teammate.file, `${assistant.slice(split)}\n`);
   await daemon.routeEvent(idle);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'partial-msg'));
 });
@@ -223,7 +223,7 @@ test('concurrent idle and duplicate Post emit one teammate response', async (t) 
     finishWrite,
   ]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.filter(span =>
@@ -258,7 +258,7 @@ test('a complete idle queued behind a partial idle is reconsidered automatically
     }),
   ]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'concurrent-idles-call');
@@ -303,7 +303,7 @@ test('cross-session idles commit in global receipt order', async (t) => {
   }, 25));
   await Promise.all([firstIdle, secondIdle]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
     String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
@@ -318,7 +318,7 @@ test('cross-session idles commit in global receipt order', async (t) => {
 });
 
 test('removing an ordinary candidate re-evaluates a buffered ambiguous idle', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const teamOwner = makeTranscript(t, 'reconcile-team-owner', 'reconcile-team-owner');
@@ -376,7 +376,7 @@ test('removing an ordinary candidate re-evaluates a buffered ambiguous idle', as
   await daemon.routeEvent({
     hook_event_name: 'SessionEnd', session_id: 'reconcile-ordinary-owner', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.ok(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'reconcile-team-msg'));
@@ -390,7 +390,7 @@ test('removing an ordinary candidate re-evaluates a buffered ambiguous idle', as
 });
 
 test('one disambiguation drains every ready buffered idle', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const teamOwner = makeTranscript(t, 'batch-team-owner', 'batch-team-owner');
@@ -451,7 +451,7 @@ test('one disambiguation drains every ready buffered idle', async (t) => {
   await daemon.routeEvent({
     hook_event_name: 'SessionEnd', session_id: 'batch-blocker-owner', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.filter(span =>

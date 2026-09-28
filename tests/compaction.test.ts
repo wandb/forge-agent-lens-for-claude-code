@@ -8,12 +8,12 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { ATTR } from '../src/genaiSpans.ts';
-import { flushWeave, initWeaveInMemory, makeGenaiDaemon } from './helpers.ts';
+import { flushForge, initForgeInMemory, makeGenaiDaemon } from './helpers.ts';
 
 const SUMMARY = 'The user asked for a refactor; we edited three files and ran the suite.';
 
 function transcript(t: TestContext, sessionId: string): string {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), '.weave-compaction-'));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), '.forge-compaction-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const file = path.join(dir, `${sessionId}.jsonl`);
   fs.writeFileSync(file, JSON.stringify({
@@ -23,7 +23,7 @@ function transcript(t: TestContext, sessionId: string): string {
 }
 
 test('PostCompact records the compaction summary on the turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'compaction-summary';
   const file = transcript(t, sessionId);
@@ -47,7 +47,7 @@ test('PostCompact records the compaction summary on the turn', async (t) => {
   });
   await daemon.routeEvent({ hook_event_name: 'Stop', ...base, prompt_id: 'p1' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', ...base, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const turns = exporter.getFinishedSpans()
     .filter(s => s.attributes[ATTR.OPERATION_NAME] === 'invoke_agent');
@@ -58,7 +58,7 @@ test('PostCompact records the compaction summary on the turn', async (t) => {
 });
 
 test('a PostCompact before any turn attaches to the next one', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'compaction-buffered';
   const file = transcript(t, sessionId);
@@ -77,7 +77,7 @@ test('a PostCompact before any turn attaches to the next one', async (t) => {
   });
   await daemon.routeEvent({ hook_event_name: 'Stop', ...base, prompt_id: 'p1' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', ...base, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const turns = exporter.getFinishedSpans()
     .filter(s => s.attributes[ATTR.OPERATION_NAME] === 'invoke_agent');

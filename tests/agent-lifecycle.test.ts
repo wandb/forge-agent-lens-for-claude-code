@@ -8,8 +8,8 @@ import * as fs from 'node:fs';
 import { ATTR } from '../src/genaiSpans.ts';
 import {
   assistantEntry,
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -66,7 +66,7 @@ test('an Agent stays open until its last nested tool completes', async (t) => {
     hook_event_name: 'PostToolUse', session_id: sid,
     tool_use_id: 'agent-call', tool_response: 'agent result',
   });
-  await flushWeave();
+  await flushForge();
 
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.AGENT_ID] === agentId), false);
@@ -98,7 +98,7 @@ for (const { title, label, toolInput, displayName } of [
   },
 ]) {
   test(title, async (t) => {
-    const exporter = await initWeaveInMemory();
+    const exporter = await initForgeInMemory();
     exporter.reset();
     const sid = `sub-${label}-agent`;
     const agentId = `${label}-agent-id`;
@@ -168,7 +168,7 @@ test('Agent Post before SubagentStop does not create a recovered duplicate', asy
 });
 
 test('terminal-first Agent without subtype learns its lifecycle type, not its name', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-terminal-unknown-type';
   const agentId = 'terminal-unknown-type-agent';

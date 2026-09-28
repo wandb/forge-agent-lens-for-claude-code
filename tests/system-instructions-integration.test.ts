@@ -20,12 +20,12 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ATTR } from '../src/genaiSpans.ts';
-import { flushWeave, initWeaveInMemory, makeGenaiDaemon, transcriptUserLine } from './helpers.ts';
+import { flushForge, initForgeInMemory, makeGenaiDaemon, transcriptUserLine } from './helpers.ts';
 
 /** Seed a transcript file with a single user line (the first line carries the
  *  CC CLI version, as real transcripts do) and return its path. */
 function seedTranscript(sid: string): { dir: string; file: string } {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), '.weave-sysinstr-'));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), '.forge-sysinstr-'));
   const file = path.join(dir, `${sid}.jsonl`);
   fs.writeFileSync(file, transcriptUserLine('hi', { version: '1.2.3', timestamp: '2026-01-01T00:00:00.000Z' }) + '\n');
   return { dir, file };
@@ -48,7 +48,7 @@ function turnRoots(spans: ReadableSpan[]): ReadableSpan[] {
 }
 
 test('buffers InstructionsLoaded fired before SessionStart, then accumulates in load order', async () => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sess-order';
   const { dir, file } = seedTranscript(sid);
@@ -63,7 +63,7 @@ test('buffers InstructionsLoaded fired before SessionStart, then accumulates in 
     await d.routeEvent({ hook_event_name: 'UserPromptSubmit', session_id: sid, prompt: 'do it' });
     await d.routeEvent({ hook_event_name: 'Stop', session_id: sid });
     await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-    await flushWeave();
+    await flushForge();
 
     const [turn] = turnRoots(exporter.getFinishedSpans());
     assert.ok(turn, 'turn root exported');
@@ -80,7 +80,7 @@ test('buffers InstructionsLoaded fired before SessionStart, then accumulates in 
 });
 
 test('re-loading the same file replaces its content rather than duplicating', async () => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sess-dedup';
   const { dir, file } = seedTranscript(sid);
@@ -94,7 +94,7 @@ test('re-loading the same file replaces its content rather than duplicating', as
     await d.routeEvent({ hook_event_name: 'UserPromptSubmit', session_id: sid, prompt: 'do it' });
     await d.routeEvent({ hook_event_name: 'Stop', session_id: sid });
     await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-    await flushWeave();
+    await flushForge();
 
     const [turn] = turnRoots(exporter.getFinishedSpans());
     assert.ok(turn, 'turn root exported');
@@ -108,7 +108,7 @@ test('re-loading the same file replaces its content rather than duplicating', as
 });
 
 test('stamps system instructions on every turn root (no session span to hang them on)', async () => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sess-multiturn';
   const { dir, file } = seedTranscript(sid);
@@ -122,7 +122,7 @@ test('stamps system instructions on every turn root (no session span to hang the
     await d.routeEvent({ hook_event_name: 'UserPromptSubmit', session_id: sid, prompt: 'turn two' });
     await d.routeEvent({ hook_event_name: 'Stop', session_id: sid });
     await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-    await flushWeave();
+    await flushForge();
 
     const turns = turnRoots(exporter.getFinishedSpans());
     assert.equal(turns.length, 2, 'both turn roots exported');
@@ -136,7 +136,7 @@ test('stamps system instructions on every turn root (no session span to hang the
 });
 
 test('omits gen_ai.system_instructions when no instructions were loaded', async () => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sess-none';
   const { dir, file } = seedTranscript(sid);
@@ -146,7 +146,7 @@ test('omits gen_ai.system_instructions when no instructions were loaded', async 
     await d.routeEvent({ hook_event_name: 'UserPromptSubmit', session_id: sid, prompt: 'do it' });
     await d.routeEvent({ hook_event_name: 'Stop', session_id: sid });
     await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-    await flushWeave();
+    await flushForge();
 
     const [turn] = turnRoots(exporter.getFinishedSpans());
     assert.ok(turn, 'turn root exported');

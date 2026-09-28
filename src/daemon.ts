@@ -81,7 +81,7 @@ export class Daemon {
 
     if (this.config.project && this.config.apiKey) {
       try {
-        await this.initWeave();
+        await this.initTracing();
         this.log(
           'INFO',
           `OTel tracer initialized — project=${this.config.project}, endpoint=${this.config.baseUrl}/agents/otel/v1/traces`,
@@ -199,7 +199,7 @@ export class Daemon {
     }
   }
 
-  private async initWeave(): Promise<void> {
+  private async initTracing(): Promise<void> {
     if (!this.config.project) {
       throw new Error('project required to init tracer');
     }

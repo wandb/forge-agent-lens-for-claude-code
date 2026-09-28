@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { ATTR } from '../src/genaiSpans.ts';
 import {
   assistantEntry,
-  initWeaveInMemory,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -64,7 +64,7 @@ test('nested Agent call stays inside its owning subagent', async (t) => {
 });
 
 test('a nested Agent result cannot claim a matching root recovery', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-owner-scoped-recovery';
   const rootAgentId = 'root-reviewer';
@@ -122,7 +122,7 @@ test('a nested Agent result cannot claim a matching root recovery', async (t) =>
 });
 
 test('unknown agent_id is rejected instead of flattened under the turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-unknown';
   const transcript = makeTranscript(t, sid, 'sub-unknown');
@@ -142,7 +142,7 @@ test('unknown agent_id is rejected instead of flattened under the turn', async (
 
 for (const firstHook of ['PreToolUse', 'PostToolUse'] as const) {
   test(`restart-first nested ${firstHook} reconstructs the owning Agent`, async (t) => {
-    const exporter = await initWeaveInMemory();
+    const exporter = await initForgeInMemory();
     exporter.reset();
     const sid = `nested-restart-${firstHook}`;
     const agentId = `owner-${firstHook}`;
@@ -191,7 +191,7 @@ for (const firstHook of ['PreToolUse', 'PostToolUse'] as const) {
 }
 
 test('restart-first nested terminal hook without agent_type stays fail-closed', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'nested-restart-no-type';
   const transcript = makeTranscript(t, sid, sid);

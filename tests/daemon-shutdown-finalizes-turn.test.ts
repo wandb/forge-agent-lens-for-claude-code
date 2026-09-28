@@ -7,8 +7,8 @@ import assert from 'node:assert/strict';
 import { ATTR } from '../src/genaiSpans.ts';
 import {
   assistantEntry,
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -34,7 +34,7 @@ for (const closure of [
   },
 ]) {
   test(`${closure.name} exports an open turn and its completed child`, async (t) => {
-    const exporter = await initWeaveInMemory();
+    const exporter = await initForgeInMemory();
     exporter.reset();
     const sid = `turn-close-${closure.name}`;
     const transcript = makeTranscript(t, sid, 'turn-close');
@@ -49,7 +49,7 @@ for (const closure of [
     await daemon.routeEvent({ hook_event_name: 'PreToolUse', session_id: sid, tool_use_id: 'tool-1', tool_name: 'Read', tool_input: { file_path: '/foo' } });
     await daemon.routeEvent({ hook_event_name: 'PostToolUse', session_id: sid, tool_use_id: 'tool-1', tool_response: 'ok' });
     await closure.close(daemon, sid);
-    await flushWeave();
+    await flushForge();
 
     const spans = exporter.getFinishedSpans();
     const turn = spans.find(span =>
@@ -67,7 +67,7 @@ for (const closure of [
 }
 
 test('daemon drain orphans an open Agent under its turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'turn-close-agent';
   const transcript = makeTranscript(t, sid, 'turn-close-agent');
@@ -81,7 +81,7 @@ test('daemon drain orphans an open Agent under its turn', async (t) => {
     tool_name: 'Agent', tool_input: { subagent_type: 'reviewer', prompt: 'review' },
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const turn = spans.find(span =>
@@ -95,7 +95,7 @@ test('daemon drain orphans an open Agent under its turn', async (t) => {
 });
 
 test('abandoning a permission-pending tool records an orphan, not a denial', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'turn-close-permission';
   const transcript = makeTranscript(t, sid, 'turn-close-permission');
@@ -108,7 +108,7 @@ test('abandoning a permission-pending tool records an orphan, not a denial', asy
   await daemon.routeEvent({ hook_event_name: 'PreToolUse', session_id: sid, tool_use_id: 'pending-tool', tool_name: 'Bash', tool_input: toolInput });
   await daemon.routeEvent({ hook_event_name: 'PermissionRequest', session_id: sid, tool_name: 'Bash', tool_input: toolInput });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const tool = exporter.getFinishedSpans().find(span =>
     span.attributes['gen_ai.tool.call.id'] === 'pending-tool');

@@ -31,7 +31,7 @@ const REPO_ROOT = path.resolve(HERE, '..');
 const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 
 test('a herd of concurrent daemon starts crashes nobody and leaves exactly one listener', async () => {
-  const home = fs.mkdtempSync(path.join(os.homedir(), '.weave-herd-'));
+  const home = fs.mkdtempSync(path.join(os.homedir(), '.forge-herd-'));
   const configDir = path.join(home, '.forge-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');
