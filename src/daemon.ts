@@ -43,6 +43,8 @@ const INACTIVITY_TIMEOUT_MS = 120 * 60 * 1_000;
 const INFLIGHT_HOLD_MAX_MS = 60 * 60 * 1_000;
 const CONNECTION_TIMEOUT_MS = 5_000;
 const MAX_SOCKET_PAYLOAD_BYTES = 4 * 1024 * 1024;
+/** Weave answers a protobuf export with a JSON body, so the exporter warns after every successful batch. */
+const UNPARSED_EXPORT_RESPONSE = 'Export succeeded but could not deserialize response';
 
 export class Daemon {
   private server?: net.Server;
@@ -214,6 +216,10 @@ export class Daemon {
 
     const otelDiag = (message: string, ...args: unknown[]) => {
       const line = `otel: ${message}${args.length ? ` ${args.map(String).join(' ')}` : ''}`;
+      if (line.includes(UNPARSED_EXPORT_RESPONSE)) {
+        this.log('DEBUG', line);
+        return;
+      }
       this.exportHealth.record(line);
       this.log('ERROR', line);
     };
