@@ -7,13 +7,6 @@
 
 Track Claude Code sessions in Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is automatically logged as a structured trace — no code changes required.
 
-## Tracing SDK
-
-Tracing uses `@coreweave/forge-sdk/agentlens/tracing`. Every emitted span carries
-`weave.source = forge-integration`, plus the `forge-claude-code` integration name, version,
-and host metadata. Settings and environment variables retain their existing names.
-Forge reports `wandb.sdk.name = forge` on the OTLP resource.
-
 ## Rename and release status
 
 This checkout builds the `@coreweave/forge-claude-code` npm package, which
@@ -269,6 +262,11 @@ Each user prompt produces one OTel trace (the "turn"); multi-turn
 conversations are stitched together server-side via
 `gen_ai.conversation.id`, which is set to the Claude Code session id on
 every span in the turn.
+
+Spans are built with the [CoreWeave Forge SDK](https://www.npmjs.com/package/@coreweave/forge-sdk).
+Every span carries `weave.source = forge-integration` and the
+`weave.integration.*` identity of this plugin; the OTLP resource reports
+`wandb.sdk.name = forge`.
 
 ```
 invoke_agent claude-code                  (root — one trace per user prompt)

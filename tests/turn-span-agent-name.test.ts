@@ -34,6 +34,7 @@ test('turn span: agentName drives gen_ai.agent.name', async () => {
 
       const turnSpans = exporter.getFinishedSpans().filter(s => s.attributes[ATTR.OPERATION_NAME] === 'invoke_agent');
       assert.equal(turnSpans.length, 1, 'exactly one turn span');
+      assert.equal(turnSpans[0].name, `invoke_agent ${name}`);
       assert.equal(turnSpans[0].attributes[ATTR.AGENT_NAME], name, `gen_ai.agent.name must be "${name}"`);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -64,6 +65,7 @@ test('chat spans carry gen_ai.agent.name so children are attributed before the r
 
     const chats = exporter.getFinishedSpans().filter(s => s.attributes[ATTR.OPERATION_NAME] === 'chat');
     assert.equal(chats.length, 1, 'exactly one chat span');
+    assert.equal(chats[0].name, 'chat claude-opus-4-8');
     assert.equal(chats[0].attributes[ATTR.AGENT_NAME], 'my-custom-agent');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
