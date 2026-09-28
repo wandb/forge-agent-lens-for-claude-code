@@ -141,6 +141,7 @@ export const LEGACY_MARKETPLACE_NAME = 'weave-claude-code';
 // name lives in package.json. Kept separate so renaming one does not silently
 // break the other.
 const NPM_PACKAGE_NAME = 'forge-claude-code';
+export const LEGACY_NPM_PACKAGE_NAME = 'weave-claude-code';
 
 /**
  * Create (or recreate) the config directory, log directory, and settings.json.

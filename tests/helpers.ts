@@ -77,7 +77,7 @@ export function readFakeCalls(home: string): string[] {
 
 /**
  * Seed `$HOME/.claude/plugins/known_marketplaces.json` with the given source
- * spec for the weave-claude-code marketplace. Mirrors what the real `claude`
+ * spec for the forge-claude-code marketplace. Mirrors what the real `claude`
  * CLI writes after `plugin marketplace add` (verified empirically). Tests use
  * this to put the registry in a known state before invoking code paths that
  * read it.

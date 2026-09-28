@@ -19,7 +19,7 @@ import {
   migrateLegacyConfig,
   registerPlugin,
 } from '../src/setup.ts';
-import { readFakeCalls } from './helpers.ts';
+import { readFakeCalls, runCli } from './helpers.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FAKE_CLAUDE_BIN_DIR = path.join(HERE, 'fixtures', 'fake-claude-bin');
@@ -129,4 +129,25 @@ suite('registerPlugin and the legacy marketplace', () => {
     assert.equal(result.legacyMarketplace, RemovalStatus.AlreadyAbsent);
     assert.ok(!readFakeCalls(tmpHome).some(c => c.startsWith('plugin marketplace remove')));
   });
+});
+
+test('install on a pre-rename home migrates the config and drops the old plugin', async () => {
+  const legacyDir = path.join(tmpHome, '.weave-claude-code');
+  writeLegacySettings(legacyDir);
+  const knownPath = path.join(tmpHome, '.claude', 'plugins', 'known_marketplaces.json');
+  fs.mkdirSync(path.dirname(knownPath), { recursive: true });
+  fs.writeFileSync(knownPath, JSON.stringify({
+    [LEGACY_MARKETPLACE_NAME]: { source: { source: 'github', repo: 'wandb/weave-claude-code', ref: 'v0.2.15' } },
+  }));
+
+  const r = await runCli(tmpHome, ['install', '--non-interactive'], {
+    PATH: `${FAKE_CLAUDE_BIN_DIR}:${process.env.PATH}`,
+    FAKE_CLAUDE_MARKETPLACE_NAME: MARKETPLACE_NAME,
+  });
+
+  assert.equal(r.code, 0, r.stdout);
+  assert.match(r.stdout, /Configuration migrated from .+\.weave-claude-code/);
+  assert.match(r.stdout, /Removed the weave-claude-code marketplace and its plugin/);
+  assert.match(r.stdout, /npm uninstall -g weave-claude-code/);
+  assert.equal(readSettings(path.join(tmpHome, '.forge-claude-code'))['project'], 'old-entity/old-project');
 });

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 // SPDX-PackageName: weave-claude-code
 
-// Tests for `weave-claude-code status` — both the human-readable output and
+// Tests for `forge-claude-code status` — both the human-readable output and
 // the `--json` output. The stale-socket case is covered separately in
 // stale-daemon-socket.test.ts as part of the cross-layer stale-recovery story.
 
@@ -68,7 +68,7 @@ function runStatus(home: string, extraArgs: string[] = []): Promise<{ stdout: st
   });
 }
 
-suite('weave-claude-code status (pretty)', () => {
+suite('forge-claude-code status (pretty)', () => {
   test('happy path: settings configured, daemon not running, reports "Ready to trace"', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'pretty-happy-'));
     writeSettings(home);
@@ -76,7 +76,7 @@ suite('weave-claude-code status (pretty)', () => {
     const r = await runStatus(home);
     assert.equal(r.code, 0, `expected exit 0 on happy path; stdout=${r.stdout}`);
 
-    assert.match(r.stdout, /Weave Claude Code — ready to trace/);
+    assert.match(r.stdout, /Forge Claude Code — ready to trace/);
     assert.match(r.stdout, /✓ Project\s+fake-entity\/fake-project\s+\(settings\.json\)/);
     assert.match(r.stdout, /✓ API key\s+.+\(settings\.json\)/);
     assert.match(r.stdout, /Daemon\s+○ not running/);
@@ -106,11 +106,24 @@ suite('weave-claude-code status (pretty)', () => {
     const r = await runStatus(home);
     assert.notEqual(r.code, 0, `expected non-zero exit when settings is missing; stdout=${r.stdout}`);
 
-    assert.match(r.stdout, /Weave Claude Code — not configured/);
+    assert.match(r.stdout, /Forge Claude Code — not configured/);
     assert.match(r.stdout, /No config at .+\.forge-claude-code\/settings\.json/);
-    assert.match(r.stdout, /weave-claude-code install/);
+    assert.match(r.stdout, /→ forge-claude-code install/);
+    assert.doesNotMatch(r.stdout, /weave-claude-code/);
     // Other status sections should be suppressed: gather returns early before probing.
     assert.doesNotMatch(r.stdout, /Daemon/);
+  });
+
+  test('missing settings with a pre-rename config: points at the migrating install', async () => {
+    const home = fs.mkdtempSync(path.join(scratch, 'pretty-legacy-'));
+    const legacyDir = path.join(home, '.weave-claude-code');
+    fs.mkdirSync(legacyDir, { recursive: true });
+    fs.writeFileSync(path.join(legacyDir, 'settings.json'), JSON.stringify({ weave_project: 'old/project' }));
+
+    const r = await runStatus(home);
+    assert.notEqual(r.code, 0);
+    assert.match(r.stdout, /Found ~\/\.weave-claude-code from before the rename; install migrates it/);
+    assert.match(r.stdout, /→ forge-claude-code install/);
   });
 
   test('unreadable settings file: prints "Configuration: failed to read" and exits non-zero', async () => {
@@ -151,7 +164,7 @@ suite('weave-claude-code status (pretty)', () => {
   });
 });
 
-suite('weave-claude-code status --json', () => {
+suite('forge-claude-code status --json', () => {
   test('emits the documented schema with configured settings', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'json-configured-'));
     const { socketPath, logFile } = writeSettings(home);
@@ -283,7 +296,7 @@ const PLUGIN_SOURCE_CASES: ReadonlyArray<PluginSourceCase> = [
   },
 ];
 
-suite('weave-claude-code status (plugin source)', () => {
+suite('forge-claude-code status (plugin source)', () => {
   test('renders each source type in pretty and json', async () => {
     for (const c of PLUGIN_SOURCE_CASES) {
       const home = fs.mkdtempSync(path.join(scratch, `src-${c.name.replace(/\s+/g, '-')}-`));
@@ -308,7 +321,7 @@ suite('weave-claude-code status (plugin source)', () => {
 // over the config-hash control reply; status surfaces it so you can tell which
 // build is actually running (e.g. a linked local dev build). Uses the real
 // daemon harness — the identity reported is the daemon's, not the CLI's.
-suite('weave-claude-code status (running daemon identity)', () => {
+suite('forge-claude-code status (running daemon identity)', () => {
   test('reports the live daemon pid, version, and entry path', async () => {
     const daemon = await startTestDaemon();
     try {
