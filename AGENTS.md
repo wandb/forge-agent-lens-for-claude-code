@@ -48,6 +48,9 @@ Three request-shape traps that produce believable but wrong conclusions:
   (`gen_ai.tool.call.arguments.command`). Do not infer the wire format from a
   flattened view.
 
+Span names carry their target (`invoke_agent claude-code`, `execute_tool Bash`,
+`chat <model>`), so select spans by `operation_name`, not `span_name`.
+
 Here `tracing` is imported from `@coreweave/forge-sdk/agentlens/tracing`.
 
 For an end-to-end check, drive the real `Daemon` with the real OTLP exporter
