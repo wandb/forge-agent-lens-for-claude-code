@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 // SPDX-PackageName: forge-claude-code
 
 // Active root or tool work pins the daemon across its idle window. A blockable

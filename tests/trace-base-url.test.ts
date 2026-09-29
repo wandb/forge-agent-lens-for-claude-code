@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 // SPDX-PackageName: forge-claude-code
 
 // The daemon exports OTLP spans to the Weave trace server, not the wandb API

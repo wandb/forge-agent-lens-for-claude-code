@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: Apache-2.0
 # SPDX-PackageName: forge-claude-code
 
 # Receives a Claude Code lifecycle event on stdin (JSON) and forwards it to the

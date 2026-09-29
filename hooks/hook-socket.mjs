@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 // SPDX-PackageName: forge-claude-code
 
 // Invoked from hook-handler.sh as a thin replacement for `nc -U -w1`, so the

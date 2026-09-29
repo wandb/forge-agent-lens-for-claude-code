@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 // SPDX-PackageName: forge-claude-code
 
 // Sockets live under /tmp (macOS 104-char path cap); see stale-daemon-socket.test.ts.

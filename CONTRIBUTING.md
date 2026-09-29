@@ -18,19 +18,19 @@ npm run check
 
 Source code should contain an SPDX-style license header, reflecting:
 - Year & Copyright owner
-- SPDX License identifier `SPDX-License-Identifier: MIT`
+- SPDX License identifier `SPDX-License-Identifier: Apache-2.0`
 - Package Name: `SPDX-PackageName: forge-claude-code`
 
 This can be partially automated with [FSFe REUSE](https://reuse.software/dev/#tool)
 ```shell
-reuse annotate --license MIT --copyright 'CoreWeave, Inc.'  --year 2026 --template default_template --skip-existing $FILE
+reuse annotate --license Apache-2.0 --copyright 'CoreWeave, Inc.'  --year 2026 --template default_template --skip-existing $FILE
 ```
 
 Blindly adding the headers to every file without review risks assigning the
 wrong copyright owner! You should endeavor to understand who owns
 contributions!
 
-- The forge-claude-code source is licensed under the MIT license to protect the
+- The forge-claude-code source is licensed under the Apache License 2.0 to protect the
   rights of all parties.
 
 Licensing state & SPDX bill-of-materials (BOM) can be valiated & generated with:

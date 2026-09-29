@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/forge-claude-code)](https://www.npmjs.com/package/forge-claude-code)
 [![CI](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml)
-[![license](https://img.shields.io/npm/l/forge-claude-code)](LICENSES/MIT.txt)
+[![license](https://img.shields.io/npm/l/forge-claude-code)](LICENSES/Apache-2.0.txt)
 [![node](https://img.shields.io/node/v/forge-claude-code)](package.json)
 
 Track Claude Code sessions in Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is automatically logged as a structured trace — no code changes required.

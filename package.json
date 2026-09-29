@@ -33,11 +33,13 @@
     "dist/",
     "hooks/",
     "skills/",
-    ".claude-plugin/"
+    ".claude-plugin/",
+    "LICENSES/",
+    "NOTICE"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wandb/weave-claude-code.git"
   },
-  "license": "MIT"
+  "license": "Apache-2.0"
 }
