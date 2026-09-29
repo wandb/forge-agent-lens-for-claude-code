@@ -45,7 +45,7 @@ export interface Settings {
   log_file: string;
   project: string | null;
   wandb_api_key: string | null;
-  /** Overrides the name shown in Forge AgentLens view (the top-level agent).
+  /** Overrides the name shown in CoreWeave Forge AgentLens (the top-level agent).
    *  null falls back to `DEFAULT_AGENT_NAME` ('claude-code'). Settings
    *  written before this field existed read as undefined, which the daemon
    *  treats identically to null. */

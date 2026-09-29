@@ -72,7 +72,7 @@ forge-claude-code config set wandb_api_key API_KEY
 
 ## Step 5 - (Optional) Custom Agent Name
 
-Traces appear under the agent name `claude-code` in the Weave Agents view by default. If the user wants a custom name (e.g. to distinguish teams or projects), set it:
+Traces appear under the agent name `claude-code` in CoreWeave Forge AgentLens by default. If the user wants a custom name (e.g. to distinguish teams or projects), set it:
 ```bash
 forge-claude-code config set agent_name CUSTOM_NAME
 ```

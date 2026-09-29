@@ -40,7 +40,7 @@ Writable keys:
 **Validation notes:**
 - `project` must contain a `/` (entity/project format). Find your entity name at https://wandb.ai.
 - `wandb_api_key` is available at https://wandb.ai/authorize.
-- `agent_name` is the name shown for the top-level agent in the Weave Agents view. It must not be empty; surrounding whitespace is trimmed. Defaults to `claude-code` when unset.
+- `agent_name` is the name shown for the top-level agent in CoreWeave Forge AgentLens. It must not be empty; surrounding whitespace is trimmed. Defaults to `claude-code` when unset.
 - Environment variables `FORGE_TRACE_PROJECT`, `WANDB_API_KEY`, and `FORGE_CLAUDE_CODE_AGENT_NAME` take precedence over settings file values when set.
 
 ## Get a Single Value

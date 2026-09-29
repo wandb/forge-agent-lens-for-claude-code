@@ -49,7 +49,7 @@ import type { ExportErrorSnapshot } from './exportHealth.js';
 const HELP = `
 forge-claude-code v${VERSION}
 
-Trace Claude Code sessions with CoreWeave Forge for observability and debugging.
+Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging.
 
 Usage:
   forge-claude-code <command> [options]
@@ -369,7 +369,7 @@ interface StatusReport {
   project: string | null;
   project_source: ProjectSource;
   api_key_configured: boolean;
-  /** Agent name shown in Forge AgentLens; always set (falls back to the default). */
+  /** Agent name shown in CoreWeave Forge AgentLens; always set (falls back to the default). */
   agent_name: string;
   /**
    * Where Claude Code is loading this plugin from. `null` means the

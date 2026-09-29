@@ -5,7 +5,7 @@
 [![license](https://img.shields.io/npm/l/@coreweave/forge-claude-code)](LICENSES/Apache-2.0.txt)
 [![node](https://img.shields.io/node/v/@coreweave/forge-claude-code)](package.json)
 
-Trace Claude Code sessions with CoreWeave Forge and view them in the [W&B Weave](https://wandb.ai/) Agents view. Every session, turn, tool call, and subagent is logged as a structured trace, with no code changes required.
+Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is logged as a structured trace, with no code changes required.
 
 ## Quick Start
 
@@ -66,13 +66,13 @@ claude
 
 Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single project. To stop tracing, run `forge-claude-code uninstall`.
 
-Open your project's Agents view in W&B Weave to see them.
+Open your project in CoreWeave Forge AgentLens to see them.
 
 ---
 
 ## Data Disclosure
 
-This plugin sends Claude Code session data to Forge AgentLens.
+This plugin sends Claude Code session data to CoreWeave Forge AgentLens.
 
 That data can include sensitive content, including:
 - user prompts
@@ -85,10 +85,10 @@ That data can include sensitive content, including:
 
 If Claude Code accesses secrets, credentials, proprietary source code, personal
 data, or other confidential material during a session, that information may be
-logged to Forge AgentLens as part of the trace.
+logged to CoreWeave Forge AgentLens as part of the trace.
 
 PII scrubbing and sensitive-data redaction are **not yet implemented** in the
-current version. If you cannot send this data to Forge AgentLens under your security
+current version. If you cannot send this data to CoreWeave Forge AgentLens under your security
 or compliance requirements, do not install or enable this plugin yet.
 
 ---
@@ -108,7 +108,7 @@ forge-claude-code config set project my-entity/my-project
 # Set your W&B API key
 forge-claude-code config set wandb_api_key <your-api-key>
 
-# (Optional) Customize the agent name shown in the Weave Agents view (default: claude-code)
+# (Optional) Customize the agent name shown in CoreWeave Forge AgentLens (default: claude-code)
 forge-claude-code config set agent_name my-team-bot
 ```
 
@@ -151,7 +151,7 @@ forge-claude-code status
 
 Each line shows `✓` (OK), `✗` (action needed), or `-` (not yet active but not an error).
 
-If sessions are not appearing in the Weave Agents view, check the daemon log for errors:
+If sessions are not appearing in CoreWeave Forge AgentLens, check the daemon log for errors:
 
 ```bash
 forge-claude-code logs              # last 50 lines (default)
@@ -210,7 +210,7 @@ Read or update plugin configuration without leaving Claude Code.
 
 The plugin emits OTel spans that follow the [GenAI semantic
 conventions](https://github.com/open-telemetry/semantic-conventions-genai) and ships
-them to the Forge AgentLens observability backend (`/agents/otel/v1/traces`).
+them to the CoreWeave Forge AgentLens observability backend (`/agents/otel/v1/traces`).
 Each user prompt produces one OTel trace (the "turn"); multi-turn
 conversations are stitched together server-side via
 `gen_ai.conversation.id`, which is set to the Claude Code session id on
@@ -233,7 +233,7 @@ invoke_agent claude-code                  (root — one trace per user prompt)
 Subagents (dispatched via Claude Code's `Agent` tool) are emitted as their
 own nested `invoke_agent` span — a direct child of the turn span, sibling
 of any regular tool calls — not as an `execute_tool Agent` span. This
-matches the Forge AgentLens chat view's reference structure, where nested
+matches the CoreWeave Forge AgentLens chat view's reference structure, where nested
 `invoke_agent` spans render as an `agent_start` lifecycle marker for the
 subagent. The spawning tool_use_id is preserved on the inner
 `invoke_agent` span as `forge.claude_code.subagent.spawning_tool_call_id`.
@@ -254,7 +254,7 @@ textual content of prompts and assistant messages
 Important: tool inputs and outputs may contain sensitive information. In
 practice this can include file contents, command output, URLs, fetched content,
 and other data handled by Claude Code during a session. That information is sent
-to Forge AgentLens. PII scrubbing/redaction is planned for a future release, but is
+to CoreWeave Forge AgentLens. PII scrubbing/redaction is planned for a future release, but is
 not available today.
 
 ---

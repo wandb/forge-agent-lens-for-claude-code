@@ -1,6 +1,6 @@
 ---
 name: forge-status
-description: This skill should be used when the user wants to "check forge status", "verify the forge plugin is running", "see if forge is set up correctly", "check forge configuration", "is forge working", "forge is running an older config", "the daemon is on an old config", or needs to diagnose why Claude Code sessions are not appearing in the Weave Agents view.
+description: This skill should be used when the user wants to "check forge status", "verify the forge plugin is running", "see if forge is set up correctly", "check forge configuration", "is forge working", "forge is running an older config", "the daemon is on an old config", or needs to diagnose why Claude Code sessions are not appearing in CoreWeave Forge AgentLens.
 ---
 
 # Forge Claude Code Plugin — Status

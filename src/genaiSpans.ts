@@ -63,7 +63,7 @@ export const ATTR = {
   // the Agent call that spawned it (correlation without walking the tree).
   FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID: 'forge.claude_code.subagent.spawning_tool_call_id',
 
-  // Forge AgentLens backend - compaction
+  // CoreWeave Forge AgentLens backend - compaction
   COMPACTION_SUMMARY: 'weave.compaction.summary',
   COMPACTION_ITEMS_BEFORE: 'weave.compaction.items_before',
   COMPACTION_ITEMS_AFTER: 'weave.compaction.items_after',
