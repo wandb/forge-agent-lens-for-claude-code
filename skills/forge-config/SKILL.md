@@ -1,6 +1,6 @@
 ---
 name: forge-config
-description: This skill should be used when the user wants to "configure forge", "set forge project", "change forge project", "set wandb api key", "update forge settings", "show forge config", "change forge configuration", "restart the forge daemon", "apply forge config changes", "restart forge to pick up changes", or needs to read or update any Forge Claude Code plugin settings.
+description: This skill should be used when the user wants to "configure Forge", "set Forge project", "change Forge project", "set wandb api key", "update Forge settings", "show Forge config", "change Forge configuration", "restart the Forge daemon", "apply Forge config changes", "restart Forge to pick up changes", or needs to read or update any Forge Claude Code plugin settings.
 ---
 
 # Forge Claude Code Plugin — Config

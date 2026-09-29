@@ -1,6 +1,6 @@
 ---
 name: forge-install
-description: This skill should be used when the user wants to "install the forge plugin", "set up forge", "install forge-claude-code", "configure forge for the first time", "get started with forge tracing", or needs to complete the initial setup of the Forge Claude Code plugin including dependency installation and project configuration.
+description: This skill should be used when the user wants to "install the Forge plugin", "set up Forge", "install forge-claude-code", "configure Forge for the first time", "get started with Forge tracing", or needs to complete the initial setup of the Forge Claude Code plugin including dependency installation and project configuration.
 ---
 
 # Forge Claude Code Plugin — Install
