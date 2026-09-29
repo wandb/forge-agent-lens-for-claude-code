@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import {
   ATTR, MEMBER, TEAM, TeamCoordinator, assert, assistantEntry, coordinator, dispatch,

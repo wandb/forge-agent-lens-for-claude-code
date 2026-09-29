@@ -1,5 +1,5 @@
 version = 1
-SPDX-PackageName = "weave-claude-code"
+SPDX-PackageName = "forge-claude-code"
 SPDX-PackageSupplier = "CoreWeave, Inc."
 SPDX-PackageDownloadLocation = "https://github.com/wandb/weave-claude-code"
 
@@ -7,4 +7,4 @@ SPDX-PackageDownloadLocation = "https://github.com/wandb/weave-claude-code"
 path = "**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 CoreWeave, Inc."
-SPDX-License-Identifier = "MIT"
+SPDX-License-Identifier = "Apache-2.0"

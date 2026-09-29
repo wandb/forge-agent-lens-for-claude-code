@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 // Config-drift detection over the socket: `status` asks the live daemon for the
 // fingerprint of the config it loaded, and warns when settings.json now

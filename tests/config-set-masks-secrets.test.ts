@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 // `config set` must mask wandb_api_key in stdout (it didn't — see #66) but
 // must still echo non-sensitive keys in full and persist the full secret.

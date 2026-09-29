@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 // Helper for probeUnixSocket "stale" test. Binds the socket path passed in
 // argv[2] and stays alive until the parent SIGKILLs it. Intentionally does NOT

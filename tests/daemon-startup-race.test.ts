@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 // Herd safety. When several hooks fire at once and each cold-starts a daemon,
 // only one can bind the socket; the losers must yield cleanly. The old start()

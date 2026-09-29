@@ -46,7 +46,7 @@ jobs:
             exit 1
           fi
 
-          if npm view "weave-claude-code@${PACKAGE_VERSION}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+          if npm view "forge-claude-code@${PACKAGE_VERSION}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
             echo "::error::Version ${PACKAGE_VERSION} is already published to npm"
             exit 1
           fi

@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-# SPDX-License-Identifier: MIT
-# SPDX-PackageName: weave-claude-code
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-PackageName: forge-claude-code
 
 # Receives a Claude Code lifecycle event on stdin (JSON) and forwards it to the
-# Weave daemon via Unix socket. Starts the daemon first if it is not running.
+# Forge daemon via Unix socket. Starts the daemon first if it is not running.
 #
 # Assumptions:
-#   - weave-claude-code is on PATH (installed globally via npm install -g),
+#   - forge-claude-code is on PATH (installed globally via npm install -g),
 #     which implies node is on PATH too.
 #
 # Errors are written to ~/.weave-claude-code/logs/hook-errors.log.
@@ -32,8 +32,8 @@ mkdir -p "${CONFIG_DIR}/logs"
 
 # ── dependency checks ─────────────────────────────────────────────────────────
 
-if ! command -v weave-claude-code >/dev/null 2>&1; then
-  echo "$(date -Iseconds) | ERROR | weave-claude-code not found in PATH. Run: npm install -g weave-claude-code" >> "${ERROR_LOG}"
+if ! command -v forge-claude-code >/dev/null 2>&1; then
+  echo "$(date -Iseconds) | ERROR | forge-claude-code not found in PATH. Run: npm install -g forge-claude-code" >> "${ERROR_LOG}"
   exit 0
 fi
 
@@ -43,8 +43,8 @@ if [ ! -f "${SETTINGS_FILE}" ]; then
   cat >> "${ERROR_LOG}" << 'EOF'
 ========================================
 ERROR | Plugin not configured.
-Run:  weave-claude-code install
-Then: weave-claude-code config set weave_project ENTITY/PROJECT
+Run:  forge-claude-code install
+Then: forge-claude-code config set weave_project ENTITY/PROJECT
 ========================================
 EOF
   exit 0
@@ -85,7 +85,7 @@ if ! is_daemon_alive; then
   # `disown` detaches it from this shell's job table. (macOS has no `setsid`, so
   # nohup+disown is the portable detach.) The daemon still self-reaps via its
   # inactivity timeout, so it won't linger forever.
-  nohup weave-claude-code daemon >> "${ERROR_LOG}" 2>&1 &
+  nohup forge-claude-code daemon >> "${ERROR_LOG}" 2>&1 &
   disown 2>/dev/null || true
 
   # Wait up to 5 s (50 × 100 ms) for the daemon to accept connections.
@@ -99,8 +99,8 @@ if ! is_daemon_alive; then
   if ! is_daemon_alive; then
     cat >> "${ERROR_LOG}" << EOF
 $(date -Iseconds) | ERROR | Daemon did not start within 5 s.
-  Diagnose: weave-claude-code status
-  Logs:     weave-claude-code logs --tail 50
+  Diagnose: forge-claude-code status
+  Logs:     forge-claude-code logs --tail 50
 EOF
     exit 0
   fi

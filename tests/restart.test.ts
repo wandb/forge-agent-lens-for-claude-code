@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
-// Tests for `weave-claude-code restart`: stop a running daemon and start a
+// Tests for `forge-claude-code restart`: stop a running daemon and start a
 // fresh one, and refuse to spawn an unconfigured daemon.
 //
 // Sockets live under /tmp (macOS 104-char path cap); see stale-daemon-socket.test.ts.
@@ -85,7 +85,7 @@ async function waitForState(socketPath: string, want: (s: SocketState) => boolea
   throw new Error(`waitForState timeout after ${timeoutMs}ms (last=${await probeUnixSocket(socketPath)})`);
 }
 
-suite('weave-claude-code restart', () => {
+suite('forge-claude-code restart', () => {
   test('refuses to start a daemon and exits non-zero when unconfigured', async () => {
     const { home, socketPath } = newHome('restart-unconfigured', {});
     const r = await runRestart(home);
