@@ -131,11 +131,10 @@ export const MARKETPLACE_NAME = 'forge-claude-code';
 export const PLUGIN_NAME = 'forge';
 
 // The npm package name shipped to the registry (matches package.json#name).
-// Coincidentally equal to MARKETPLACE_NAME today but a distinct concept: the
-// marketplace name lives in .claude-plugin/marketplace.json, the npm package
-// name lives in package.json. Kept separate so renaming one does not silently
-// break the other.
-const NPM_PACKAGE_NAME = 'forge-claude-code';
+// A distinct concept from MARKETPLACE_NAME: the marketplace name lives in
+// .claude-plugin/marketplace.json, the npm package name lives in package.json.
+// Kept separate so renaming one does not silently break the other.
+export const NPM_PACKAGE_NAME = '@coreweave/forge-claude-code';
 
 /**
  * Create (or recreate) the config directory, log directory, and settings.json.
@@ -300,9 +299,9 @@ function resolveMarketplaceArg(source: InstallSource, logFile: string): string {
   const localPath = findLocalPluginPath();
   if (!localPath) {
     const msg = [
-      '--source=local requires forge-claude-code to be installed globally via npm,',
-      "but `npm root -g` did not yield a forge-claude-code/.claude-plugin/marketplace.json.",
-      'Run: npm install -g forge-claude-code',
+      `--source=local requires ${NPM_PACKAGE_NAME} to be installed globally via npm,`,
+      `but \`npm root -g\` did not yield a ${NPM_PACKAGE_NAME}/.claude-plugin/marketplace.json.`,
+      `Run: npm install -g ${NPM_PACKAGE_NAME}`,
     ].join('\n');
     appendToLog(logFile, 'ERROR', msg);
     throw new Error(msg);
@@ -342,7 +341,7 @@ export function registerPlugin(
   const refAfter = readRegisteredMarketplaceRef(MARKETPLACE_NAME);
   // Drift detection compares marketplace refs (version tags). Local sources
   // have no version tag (npm is the version-of-record), so skip the check and
-  // let the user re-run `npm install -g forge-claude-code` to upgrade.
+  // let the user re-run `npm install -g @coreweave/forge-claude-code` to upgrade.
   const refDrifted = source !== InstallSource.Local && refBefore !== null && refBefore !== refAfter;
 
   // Install plugin at user scope

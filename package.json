@@ -1,5 +1,5 @@
 {
-  "name": "forge-claude-code",
+  "name": "@coreweave/forge-claude-code",
   "version": "0.2.15",
   "description": "Track Claude Code sessions in Forge AgentLens for observability and debugging",
   "type": "module",
@@ -37,6 +37,9 @@
     "LICENSES/",
     "NOTICE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wandb/forge-claude-code.git"

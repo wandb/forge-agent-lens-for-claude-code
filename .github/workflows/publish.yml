@@ -39,6 +39,7 @@ jobs:
             exit 1
           fi
 
+          PACKAGE_NAME="$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).name")"
           PACKAGE_VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")"
 
           if [ "${RELEASE_REF}" != "v${PACKAGE_VERSION}" ]; then
@@ -46,8 +47,8 @@ jobs:
             exit 1
           fi
 
-          if npm view "forge-claude-code@${PACKAGE_VERSION}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
-            echo "::error::Version ${PACKAGE_VERSION} is already published to npm"
+          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "::error::Version ${PACKAGE_VERSION} of ${PACKAGE_NAME} is already published to npm"
             exit 1
           fi
 

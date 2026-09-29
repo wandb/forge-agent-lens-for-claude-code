@@ -39,10 +39,10 @@ Decide based on the results:
 ## Step 1 — Install the CLI (fresh install only)
 
 ```bash
-npm install -g forge-claude-code
+npm install -g @coreweave/forge-claude-code
 ```
 
-If it fails with a permission error (EACCES on a system Node install), confirm with the user before retrying with `sudo npm install -g forge-claude-code`.
+If it fails with a permission error (EACCES on a system Node install), confirm with the user before retrying with `sudo npm install -g @coreweave/forge-claude-code`.
 
 Verify:
 ```bash
@@ -141,7 +141,7 @@ This is the **load-bearing step**. Claude Code couples plugins to their marketpl
 ### Step 3 — Install the new package
 
 ```bash
-npm install -g forge-claude-code@latest
+npm install -g @coreweave/forge-claude-code@latest
 which forge-claude-code
 ```
 

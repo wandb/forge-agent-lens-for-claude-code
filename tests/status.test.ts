@@ -249,7 +249,7 @@ const PLUGIN_SOURCE_CASES: ReadonlyArray<PluginSourceCase> = [
       const dir = fs.mkdtempSync(path.join(scratchDir, 'dir-with-ver-'));
       fs.writeFileSync(
         path.join(dir, 'package.json'),
-        JSON.stringify({ name: 'forge-claude-code', version: '1.2.3' }),
+        JSON.stringify({ name: '@coreweave/forge-claude-code', version: '1.2.3' }),
       );
       return {
         seed: { source: 'directory', path: dir },

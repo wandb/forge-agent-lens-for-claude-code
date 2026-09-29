@@ -1,9 +1,9 @@
 # Forge Claude Code Plugin
 
-[![npm](https://img.shields.io/npm/v/forge-claude-code)](https://www.npmjs.com/package/forge-claude-code)
+[![npm](https://img.shields.io/npm/v/@coreweave/forge-claude-code)](https://www.npmjs.com/package/@coreweave/forge-claude-code)
 [![CI](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml)
-[![license](https://img.shields.io/npm/l/forge-claude-code)](LICENSES/Apache-2.0.txt)
-[![node](https://img.shields.io/node/v/forge-claude-code)](package.json)
+[![license](https://img.shields.io/npm/l/@coreweave/forge-claude-code)](LICENSES/Apache-2.0.txt)
+[![node](https://img.shields.io/node/v/@coreweave/forge-claude-code)](package.json)
 
 Track Claude Code sessions in Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is automatically logged as a structured trace — no code changes required.
 
@@ -16,8 +16,9 @@ Forge reports `wandb.sdk.name = forge` on the OTLP resource.
 
 ## Rename and release status
 
-This checkout builds `forge-claude-code` and the `forge@forge-claude-code`
-plugin. It uses the published `@coreweave/forge-sdk@0.1.0-beta.0` beta.
+This checkout builds the `@coreweave/forge-claude-code` npm package, which
+provides the `forge-claude-code` CLI and the `forge@forge-claude-code` plugin.
+It uses the published `@coreweave/forge-sdk@0.1.0-beta.0` beta.
 The renamed integration has not been released by this change. Until a release
 is approved, build and pack this checkout, install its tarball globally, and
 use `forge-claude-code install --source=local`. The default GitHub install
@@ -52,7 +53,7 @@ so local installs do not fetch an older GitHub plugin.
 **1. Install the CLI**
 
 ```bash
-npm install -g forge-claude-code
+npm install -g @coreweave/forge-claude-code
 ```
 
 **2. Run the installer**
@@ -84,11 +85,11 @@ In non-interactive mode, the installer still creates config, registers the Claud
 By default, `claude plugin marketplace add` clones `wandb/weave-claude-code` from GitHub. In CI or container sandboxes without git/SSH access to GitHub, pass `--source=local` to register the marketplace from the npm-installed tree on disk instead:
 
 ```bash
-npm install -g forge-claude-code
+npm install -g @coreweave/forge-claude-code
 forge-claude-code install --non-interactive --source=local
 ```
 
-`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/forge-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
+`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/@coreweave/forge-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
 
 **3. Restart or launch Claude Code**
 
