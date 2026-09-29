@@ -92,7 +92,7 @@ suite('forge-claude-code status (pretty)', () => {
 
   test('falls back to the default agent name when unset', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'pretty-agent-default-'));
-    writeSettings(home); // no agent_name key, mirrors settings written before the field existed
+    writeSettings(home, { agent_name: null });
 
     const r = await runStatus(home);
     assert.match(r.stdout, /✓ Agent\s+claude-code/);

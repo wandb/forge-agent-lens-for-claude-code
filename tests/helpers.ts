@@ -22,8 +22,7 @@ const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 
 /**
  * Create a throwaway $HOME with a minimal `settings.json` for exercising
- * `config` subcommands. The seed deliberately omits `agent_name` so tests can
- * verify resolution on settings files written before that field existed.
+ * `config` subcommands.
  */
 export function seedConfigHome(label: string): { home: string; settingsFile: string } {
   const home = fs.mkdtempSync(`/tmp/wcp-${label}-`);
@@ -35,6 +34,7 @@ export function seedConfigHome(label: string): { home: string; settingsFile: str
     daemon_socket: path.join(dir, 'daemon.sock'),
     project: null,
     wandb_api_key: null,
+    agent_name: null,
     debug: false,
     installed_at: '2026-01-01T00:00:00Z',
     version: '0.0.0-test',
@@ -219,9 +219,8 @@ export function flushForge(): Promise<void> {
   return tracing.forceFlush();
 }
 
-/** Support both current and older OTel parent-span fields. */
 export function spanParentId(s: ReadableSpan): string | undefined {
-  return (s as unknown as { parentSpanId?: string }).parentSpanId ?? s.parentSpanContext?.spanId;
+  return s.parentSpanContext?.spanId;
 }
 
 export function childrenOf(spans: ReadableSpan[], parent: ReadableSpan): ReadableSpan[] {

@@ -273,13 +273,6 @@ async function cmdConfig(args: string[]): Promise<void> {
       console.error(`✗ ${err}`);
       process.exit(1);
     }
-    // agent_name resolves via env/default and may be absent from settings
-    // files written before the field existed, so handle it before the generic
-    // `undefined` → unknown-key check below.
-    if (key === 'agent_name') {
-      console.log(resolveAgentName(settings).value);
-      return;
-    }
     const value = (settings as unknown as Record<string, unknown>)[key];
     if (value === undefined) {
       console.error(`Unknown key: ${key}`);
@@ -289,6 +282,8 @@ async function cmdConfig(args: string[]): Promise<void> {
       console.log(resolveProject(settings).value ?? '(not set)');
     } else if (key === 'wandb_api_key') {
       console.log(resolveApiKey(settings).value ?? '(not set)');
+    } else if (key === 'agent_name') {
+      console.log(resolveAgentName(settings).value);
     } else {
       console.log(value ?? '(not set)');
     }

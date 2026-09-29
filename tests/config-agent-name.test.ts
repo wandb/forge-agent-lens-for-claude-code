@@ -3,9 +3,6 @@
 // SPDX-PackageName: forge-claude-code
 
 // `config` support for the customizable top-level agent name.
-// The seed settings file deliberately OMITS agent_name to mirror an install
-// from before the field existed; `get` must still resolve to the default
-// rather than error with "Unknown key".
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,7 +12,7 @@ import { seedConfigHome, runCli } from './helpers.ts';
 test('config agent_name: default, set, get/show, and env-var override', async () => {
   const { home } = seedConfigHome('agentname');
   try {
-    // get on a file missing the key resolves to the default, not an error.
+    // An unset agent_name resolves to the default.
     const def = await runCli(home, ['config', 'get', 'agent_name']);
     assert.equal(def.code, 0);
     assert.equal(def.stdout.trim(), 'claude-code');
