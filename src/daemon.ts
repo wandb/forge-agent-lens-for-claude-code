@@ -54,7 +54,7 @@ export class Daemon {
   private running = false;
   private lastActivity = Date.now();
   private readonly inactivityMs =
-    Number(process.env.WEAVE_INACTIVITY_MS) || INACTIVITY_TIMEOUT_MS;
+    Number(process.env.FORGE_CLAUDE_CODE_INACTIVITY_MS) || INACTIVITY_TIMEOUT_MS;
   private tracingEnabled = false;
   private readonly hookHandler: HookHandler;
   /** Rejected exports, reported on `config-hash` so `status` can warn. */
@@ -79,16 +79,16 @@ export class Daemon {
     process.on('SIGHUP', () => void this.shutdown('SIGHUP'));
     process.on('exit', () => this.releaseOwnedSocket());
 
-    if (this.config.weaveProject && this.config.apiKey) {
+    if (this.config.project && this.config.apiKey) {
       try {
-        await this.initWeave();
+        await this.initTracing();
         this.log(
           'INFO',
-          `OTel tracer initialized — project=${this.config.weaveProject}, endpoint=${this.config.baseUrl}/agents/otel/v1/traces`,
+          `OTel tracer initialized — project=${this.config.project}, endpoint=${this.config.baseUrl}/agents/otel/v1/traces`,
         );
         this.log(
           'INFO',
-          `View traces: https://wandb.ai/${this.config.weaveProject}/weave/agents`,
+          `View traces: https://wandb.ai/${this.config.project}/weave/agents`,
         );
       } catch (err) {
         this.log(
@@ -98,7 +98,7 @@ export class Daemon {
         this.tracingEnabled = false;
       }
     } else {
-      this.log('INFO', 'No weave_project / API key configured — tracing disabled');
+      this.log('INFO', 'No project / API key configured — tracing disabled');
     }
 
     await this.bindSocketWithHerdProtection();
@@ -199,18 +199,18 @@ export class Daemon {
     }
   }
 
-  private async initWeave(): Promise<void> {
-    if (!this.config.weaveProject) {
-      throw new Error('weaveProject required to init tracer');
+  private async initTracing(): Promise<void> {
+    if (!this.config.project) {
+      throw new Error('project required to init tracer');
     }
     if (!this.config.apiKey) {
       throw new Error('apiKey required to init tracer');
     }
 
-    const [entity, project] = this.config.weaveProject.split('/', 2);
+    const [entity, project] = this.config.project.split('/', 2);
     if (!entity || !project) {
       throw new Error(
-        `Invalid weave_project format: '${this.config.weaveProject}' (expected entity/project)`,
+        `Invalid project format: '${this.config.project}' (expected entity/project)`,
       );
     }
 
@@ -234,7 +234,7 @@ export class Daemon {
       DiagLogLevel.WARN,
     );
 
-    await tracing.init(this.config.weaveProject, {
+    await tracing.init(this.config.project, {
       apiKey: this.config.apiKey,
       baseUrl: this.config.baseUrl,
       serviceName: 'forge-claude-code',
@@ -387,9 +387,9 @@ export async function runDaemon(): Promise<void> {
   fs.mkdirSync(path.dirname(logFile), { recursive: true });
 
   const config = resolveDaemonConfig(settings, process.env);
-  if (!config.weaveProject || !config.apiKey) {
+  if (!config.project || !config.apiKey) {
     const missing = missingConfig(
-      Boolean(config.weaveProject),
+      Boolean(config.project),
       Boolean(config.apiKey),
       'WANDB_API_KEY',
     );

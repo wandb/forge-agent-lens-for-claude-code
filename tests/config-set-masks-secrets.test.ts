@@ -12,7 +12,7 @@ import { seedConfigHome, runCli } from './helpers.ts';
 
 const SECRET = 'wandb_v1_SUPERSECRETvalueDoNotLeak0123456789';
 
-test('config set: masks wandb_api_key, echoes weave_project in full', async () => {
+test('config set: masks wandb_api_key, echoes project in full', async () => {
   const { home, settingsFile } = seedConfigHome('cfgset-mask');
   try {
     const apiKey = await runCli(home, ['config', 'set', 'wandb_api_key', SECRET]);
@@ -21,7 +21,7 @@ test('config set: masks wandb_api_key, echoes weave_project in full', async () =
     assert.match(apiKey.stdout, /wand…/);
     assert.equal(JSON.parse(fs.readFileSync(settingsFile, 'utf8')).wandb_api_key, SECRET);
 
-    const project = await runCli(home, ['config', 'set', 'weave_project', 'my-entity/my-project']);
+    const project = await runCli(home, ['config', 'set', 'project', 'my-entity/my-project']);
     assert.equal(project.code, 0);
     assert.match(project.stdout, /my-entity\/my-project/);
   } finally {

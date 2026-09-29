@@ -11,8 +11,8 @@ import { sha256Hex } from './utils.js';
 import type { Settings } from './setup.js';
 
 /** Where a resolved value came from, for user-facing "source" reporting. */
-export enum WeaveProjectSource {
-  EnvVar = 'WEAVE_PROJECT env var',
+export enum ProjectSource {
+  EnvVar = 'FORGE_TRACE_PROJECT env var',
   Settings = 'settings.json',
   NotSet = 'not set',
 }
@@ -23,7 +23,7 @@ export enum ApiKeySource {
 }
 /** No `NotSet`: agent_name always resolves to the built-in default. */
 export enum AgentNameSource {
-  EnvVar = 'WEAVE_AGENT_NAME env var',
+  EnvVar = 'FORGE_CLAUDE_CODE_AGENT_NAME env var',
   Settings = 'settings.json',
   Default = 'default',
 }
@@ -41,16 +41,16 @@ function resolveFromEnvOrSettings<S>(
   return { value: null, source: sources.notSet };
 }
 
-/** Resolve the effective Weave project (WEAVE_PROJECT env beats
- *  settings.weave_project) and where it came from. */
+/** Resolve the effective project (FORGE_TRACE_PROJECT env beats
+ *  settings.project) and where it came from. */
 export function resolveProject(
   settings: Settings,
   env: NodeJS.ProcessEnv = process.env,
-): { value: string | null; source: WeaveProjectSource } {
-  return resolveFromEnvOrSettings(env['WEAVE_PROJECT'], settings.weave_project, {
-    env: WeaveProjectSource.EnvVar,
-    settings: WeaveProjectSource.Settings,
-    notSet: WeaveProjectSource.NotSet,
+): { value: string | null; source: ProjectSource } {
+  return resolveFromEnvOrSettings(env['FORGE_TRACE_PROJECT'], settings.project, {
+    env: ProjectSource.EnvVar,
+    settings: ProjectSource.Settings,
+    notSet: ProjectSource.NotSet,
   });
 }
 
@@ -67,13 +67,13 @@ export function resolveApiKey(
   });
 }
 
-/** Resolve the effective top-level agent name (WEAVE_AGENT_NAME env beats
- *  settings.agent_name), falling back to `DEFAULT_AGENT_NAME`. */
+/** Resolve the effective top-level agent name (FORGE_CLAUDE_CODE_AGENT_NAME env
+ *  beats settings.agent_name), falling back to `DEFAULT_AGENT_NAME`. */
 export function resolveAgentName(
   settings: Settings,
   env: NodeJS.ProcessEnv = process.env,
 ): { value: string; source: AgentNameSource } {
-  const fromEnv = env['WEAVE_AGENT_NAME']?.trim();
+  const fromEnv = env['FORGE_CLAUDE_CODE_AGENT_NAME']?.trim();
   if (fromEnv) return { value: fromEnv, source: AgentNameSource.EnvVar };
   const fromSettings = settings.agent_name?.trim();
   if (fromSettings) return { value: fromSettings, source: AgentNameSource.Settings };
@@ -82,7 +82,7 @@ export function resolveAgentName(
 
 /** The config the daemon loads at startup and holds for its lifetime. */
 export type DaemonConfig = {
-  weaveProject: string | null;
+  project: string | null;
   apiKey: string | null;
   baseUrl: string;
   agentName: string;
@@ -93,11 +93,11 @@ export type DaemonConfig = {
  *  resolvers so the env-over-settings precedence is defined once. */
 export function resolveDaemonConfig(settings: Settings, env: NodeJS.ProcessEnv): DaemonConfig {
   return {
-    weaveProject: resolveProject(settings, env).value,
+    project: resolveProject(settings, env).value,
     apiKey: resolveApiKey(settings, env).value,
     baseUrl: resolveTraceBaseUrl(env),
     agentName: resolveAgentName(settings, env).value,
-    debug: !!env['WEAVE_CLAUDE_DEBUG'] || settings.debug === true,
+    debug: !!env['FORGE_CLAUDE_CODE_DEBUG'] || settings.debug === true,
   };
 }
 
@@ -121,7 +121,7 @@ function resolveTraceBaseUrl(env: NodeJS.ProcessEnv): string {
  *  (`wandb_api_key` for config-oriented messages, `WANDB_API_KEY` for
  *  env-oriented ones). */
 export function missingConfig(hasProject: boolean, hasApiKey: boolean, apiKeyLabel: string): string {
-  return [!hasProject && 'weave_project', !hasApiKey && apiKeyLabel].filter(Boolean).join(', ');
+  return [!hasProject && 'project', !hasApiKey && apiKeyLabel].filter(Boolean).join(', ');
 }
 
 /** Hex chars kept from the config hash. 16 (64 bits) is ample to detect a
@@ -131,6 +131,6 @@ const CONFIG_FINGERPRINT_LENGTH = 16;
 /** Short, stable hash of a daemon config. The API key is hashed, not exposed,
  *  so the fingerprint is safe to send over the socket. */
 export function daemonConfigFingerprint(c: DaemonConfig): string {
-  return sha256Hex(JSON.stringify([c.weaveProject, c.apiKey, c.baseUrl, c.agentName, c.debug]))
+  return sha256Hex(JSON.stringify([c.project, c.apiKey, c.baseUrl, c.agentName, c.debug]))
     .slice(0, CONFIG_FINGERPRINT_LENGTH);
 }

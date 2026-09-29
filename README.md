@@ -5,41 +5,7 @@
 [![license](https://img.shields.io/npm/l/@coreweave/forge-claude-code)](LICENSES/Apache-2.0.txt)
 [![node](https://img.shields.io/node/v/@coreweave/forge-claude-code)](package.json)
 
-Track Claude Code sessions in Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is automatically logged as a structured trace — no code changes required.
-
-## Rename and release status
-
-This checkout builds the `@coreweave/forge-claude-code` npm package, which
-provides the `forge-claude-code` CLI and the `forge@forge-claude-code` plugin.
-It uses the published `@coreweave/forge-sdk@0.1.0-beta.0` beta.
-The renamed integration has not been released by this change. Until a release
-is approved, build and pack this checkout, install its tarball globally, and
-use `forge-claude-code install --source=local`. The default GitHub install
-still targets the existing repository's release tag; its old release does not
-contain the renamed plugin. Registry installation examples below apply after
-publication.
-
-### Upgrading from weave-claude-code
-
-Stop active Claude Code sessions and the old daemon before switching. Remove
-only the old plugin registration, not its settings:
-
-```bash
-claude plugin uninstall weave@weave-claude-code --scope user
-claude plugin marketplace remove weave-claude-code
-```
-
-After installing the new package, run `forge-claude-code install --source=local`
-and `forge-claude-code restart`, then reload Claude Code. Uninstall the old npm
-package with `npm uninstall -g weave-claude-code`. Do not run the old CLI's
-`uninstall` command: it deletes the settings reused by Forge.
-
-For compatibility, settings, logs, and the socket remain under
-`~/.weave-claude-code`; `weave_project`, `WEAVE_*`, `WANDB_*`,
-`WF_TRACE_SERVER_URL`, and `weave.*` trace attributes keep their existing
-names. No old CLI alias is installed. GitHub repository URLs and ownership
-remain unchanged. The plugin uses the files bundled with its marketplace,
-so local installs do not fetch an older GitHub plugin.
+Trace Claude Code sessions with CoreWeave Forge and view them in the [W&B Weave](https://wandb.ai/) Agents view. Every session, turn, tool call, and subagent is logged as a structured trace, with no code changes required.
 
 ## Quick Start
 
@@ -56,22 +22,22 @@ forge-claude-code install
 ```
 
 This will:
-- Create `~/.weave-claude-code/settings.json`
+- Create `~/.forge-claude-code/settings.json`
 - Register the plugin in Claude Code
-- Prompt for your Forge project (`entity/project`) and W&B API key if not already set
+- Prompt for the W&B project that receives traces (`entity/project`) and your W&B API key if not already set
 
 Your W&B API key is available at https://wandb.ai/authorize.
 
 For CI, bootstrap scripts, or other automated systems, you can skip prompts:
 
 ```bash
-WEAVE_PROJECT=my-entity/my-project \
+FORGE_TRACE_PROJECT=my-entity/my-project \
 WANDB_API_KEY=<your-api-key> \
 forge-claude-code install --non-interactive
 ```
 
 In non-interactive mode, the installer still creates config, registers the Claude marketplace, and installs the plugin. It does not prompt for missing values. Instead, it:
-- Uses `WEAVE_PROJECT` and `WANDB_API_KEY` from the environment when present
+- Uses `FORGE_TRACE_PROJECT` and `WANDB_API_KEY` from the environment when present
 - Warns and continues if either value is missing
 - Leaves environment-provided values in the environment rather than writing them into `settings.json`
 
@@ -100,7 +66,7 @@ claude
 
 Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single project. To stop tracing, run `forge-claude-code uninstall`.
 
-Open your Forge project to see them.
+Open your project's Agents view in W&B Weave to see them.
 
 ---
 
@@ -134,24 +100,24 @@ or compliance requirements, do not install or enable this plugin yet.
 forge-claude-code config show
 
 # Read a single setting (resolves env-var overrides)
-forge-claude-code config get weave_project
+forge-claude-code config get project
 
-# Set your Forge project
-forge-claude-code config set weave_project my-entity/my-project
+# Set the W&B project that receives traces
+forge-claude-code config set project my-entity/my-project
 
 # Set your W&B API key
 forge-claude-code config set wandb_api_key <your-api-key>
 
-# (Optional) Customize the agent name shown in Forge AgentLens view (default: claude-code)
+# (Optional) Customize the agent name shown in the Weave Agents view (default: claude-code)
 forge-claude-code config set agent_name my-team-bot
 ```
 
 You can also set these via environment variables — they take precedence over the settings file:
 
 ```bash
-export WEAVE_PROJECT=my-entity/my-project
+export FORGE_TRACE_PROJECT=my-entity/my-project
 export WANDB_API_KEY=<your-api-key>
-export WEAVE_AGENT_NAME=my-team-bot
+export FORGE_CLAUDE_CODE_AGENT_NAME=my-team-bot
 ```
 
 This is especially useful with `forge-claude-code install --non-interactive`, where the installer checks these variables instead of prompting.
@@ -185,7 +151,7 @@ forge-claude-code status
 
 Each line shows `✓` (OK), `✗` (action needed), or `-` (not yet active but not an error).
 
-If sessions are not appearing in Forge AgentLens, check the daemon log for errors:
+If sessions are not appearing in the Weave Agents view, check the daemon log for errors:
 
 ```bash
 forge-claude-code logs              # last 50 lines (default)
@@ -193,14 +159,14 @@ forge-claude-code logs --tail 200   # last N lines
 forge-claude-code logs --follow     # tail -f
 ```
 
-The log file is also directly at `~/.weave-claude-code/logs/daemon.log`.
+The log file is also directly at `~/.forge-claude-code/logs/daemon.log`.
 
 For more verbose daemon output while diagnosing an issue, enable debug mode:
 
 ```bash
 forge-claude-code config set debug true
 # or, just for the current shell session:
-export WEAVE_CLAUDE_DEBUG=1
+export FORGE_CLAUDE_CODE_DEBUG=1
 ```
 
 ---
@@ -234,7 +200,7 @@ Read or update plugin configuration without leaving Claude Code.
 /forge:forge-config
 
 # Set a value directly
-/forge:forge-config set weave_project my-entity/my-project
+/forge:forge-config set project my-entity/my-project
 /forge:forge-config set wandb_api_key <your-api-key>
 ```
 
@@ -252,8 +218,8 @@ every span in the turn.
 
 Spans are built with the [CoreWeave Forge SDK](https://www.npmjs.com/package/@coreweave/forge-sdk).
 Every span carries `weave.source = forge-integration` and the
-`weave.integration.*` identity of this plugin; the OTLP resource reports
-`wandb.sdk.name = forge`.
+`forge.integration.*` identity of this plugin; the OTLP resource reports
+`service.name = forge-claude-code` and `wandb.sdk.name = forge`.
 
 ```
 invoke_agent claude-code                  (root — one trace per user prompt)
@@ -270,10 +236,10 @@ of any regular tool calls — not as an `execute_tool Agent` span. This
 matches the Forge AgentLens chat view's reference structure, where nested
 `invoke_agent` spans render as an `agent_start` lifecycle marker for the
 subagent. The spawning tool_use_id is preserved on the inner
-`invoke_agent` span as `weave.claude_code.subagent.spawning_tool_call_id`.
+`invoke_agent` span as `forge.claude_code.subagent.spawning_tool_call_id`.
 
-Permission requests appear as `weave.permission_request` events on the
-corresponding tool or agent call span; context-window compaction is stamped as
+Permission requests appear as `forge.permission_request` events on the
+corresponding tool or agent call span; context-window compaction is recorded as
 `weave.compaction.{summary,items_before,items_after}` attributes on the
 turn span open at compaction time (or the next turn if compaction fires
 between turns).

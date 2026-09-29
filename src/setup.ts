@@ -43,7 +43,7 @@ function failIfError(
 
 export interface Settings {
   log_file: string;
-  weave_project: string | null;
+  project: string | null;
   wandb_api_key: string | null;
   /** Overrides the name shown in Forge AgentLens view (the top-level agent).
    *  null falls back to `DEFAULT_AGENT_NAME` ('claude-code'). Settings
@@ -117,8 +117,7 @@ export interface UninstallResult {
   pluginError?: string;
 }
 
-// Keep the existing configuration and daemon socket across the product rename.
-export const CONFIG_DIR = path.join(os.homedir(), '.weave-claude-code');
+export const CONFIG_DIR = path.join(os.homedir(), '.forge-claude-code');
 export const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 
 // Claude Code plugin marketplace coordinates. Pin installs to a release tag so
@@ -154,7 +153,7 @@ export function createConfig(configDir: string): ConfigResult {
 
   const settings: Settings = {
     log_file: logFile,
-    weave_project: null,
+    project: null,
     wandb_api_key: null,
     agent_name: null,
     debug: false,

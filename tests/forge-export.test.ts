@@ -26,7 +26,7 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
   assert.ok(address && typeof address !== 'string');
   const daemon = await startTestDaemon({ env: {
     WANDB_API_KEY: 'wire-test-key',
-    WEAVE_PROJECT: 'test/test',
+    FORGE_TRACE_PROJECT: 'test/test',
     WF_TRACE_SERVER_URL: `http://127.0.0.1:${address.port}`,
   } });
   try {
@@ -49,6 +49,10 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
       assert.equal(request.headers.project_id, 'test/test');
       assert.ok(request.body.includes(Buffer.from('forge-integration')));
       assert.ok(request.body.includes(Buffer.from('wandb.sdk.name')));
+      assert.ok(request.body.includes(Buffer.from('forge.integration.name')));
+      assert.ok(request.body.includes(Buffer.from('forge-claude-code')));
+      assert.ok(!request.body.includes(Buffer.from('weave.integration')));
+      assert.ok(!request.body.includes(Buffer.from('weave.claude_code')));
     }
     assert.doesNotMatch(daemon.readLog(), /\| ERROR \|/);
   } finally {

@@ -27,10 +27,10 @@ test('config agent_name: default, set, get/show, and env-var override', async ()
     assert.equal((await runCli(home, ['config', 'get', 'agent_name'])).stdout.trim(), 'my-team-bot');
     assert.match((await runCli(home, ['config', 'show'])).stdout, /agent_name:\s+my-team-bot \[settings\.json\]/);
 
-    // WEAVE_AGENT_NAME overrides the settings file.
-    const env = { WEAVE_AGENT_NAME: 'from-env' };
+    // FORGE_CLAUDE_CODE_AGENT_NAME overrides the settings file.
+    const env = { FORGE_CLAUDE_CODE_AGENT_NAME: 'from-env' };
     assert.equal((await runCli(home, ['config', 'get', 'agent_name'], env)).stdout.trim(), 'from-env');
-    assert.match((await runCli(home, ['config', 'show'], env)).stdout, /agent_name:\s+from-env \[WEAVE_AGENT_NAME env var\]/);
+    assert.match((await runCli(home, ['config', 'show'], env)).stdout, /agent_name:\s+from-env \[FORGE_CLAUDE_CODE_AGENT_NAME env var\]/);
   } finally {
     fs.rmSync(home, { recursive: true, force: true });
   }

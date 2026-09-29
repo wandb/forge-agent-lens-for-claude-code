@@ -31,15 +31,15 @@ const REPO_ROOT = path.resolve(HERE, '..');
 const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 
 test('a herd of concurrent daemon starts crashes nobody and leaves exactly one listener', async () => {
-  const home = fs.mkdtempSync(path.join(os.homedir(), '.weave-herd-'));
-  const configDir = path.join(home, '.weave-claude-code');
+  const home = fs.mkdtempSync(path.join(os.homedir(), '.forge-herd-'));
+  const configDir = path.join(home, '.forge-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });
   fs.writeFileSync(
     path.join(configDir, 'settings.json'),
     JSON.stringify({
-      weave_project: 'test/test', wandb_api_key: 'fake-key',
+      project: 'test/test', wandb_api_key: 'fake-key',
       daemon_socket: socketPath, log_file: logPath, debug: true,
     }),
   );

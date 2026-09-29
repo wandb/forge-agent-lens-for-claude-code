@@ -3,7 +3,7 @@
 // SPDX-PackageName: forge-claude-code
 
 import {
-  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushWeave,
+  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushForge,
   isTeammateTurn, makeTranscript, postDispatch, preDispatch, spanParentId,
   teammateEntries, test, userEntry,
 } from './agent-team-test-helpers.ts';
@@ -26,7 +26,7 @@ test('SessionEnd retains an exact team call despite optional metadata overflow',
   const internals = daemon as unknown as { hasInFlightWork(): boolean };
   assert.equal(internals.hasInFlightWork(), true, 'deferred team work pins inactivity');
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call'), false);
 
   const teammate = makeTranscript(t, 'fallback-teammate', 'team-fallback');
   teammate.append(...teammateEntries('fallback-teammate', 'fallback result', 'fallback-msg'));
@@ -34,18 +34,18 @@ test('SessionEnd retains an exact team call despite optional metadata overflow',
     hook_event_name: 'TeammateIdle', session_id: 'fallback-teammate',
     transcript_path: teammate.file, team_name: TEAM, teammate_name: MEMBER,
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'deferred-team-call');
   const root = spans.find(span => span.attributes[ATTR.AGENT_NAME] === 'claude-code');
   assert.ok(agent && root);
   assert.equal(
     agent.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([{ role: 'assistant', content: 'fallback result' }]),
   );
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(spanParentId(agent), root.spanContext().spanId);
   assert.ok(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'fallback-msg'));
   assert.equal(internals.hasInFlightWork(), false, 'a duplicate prompt does not cancel SessionEnd');
@@ -57,7 +57,7 @@ test('generic implicit team work survives SessionEnd until TeammateIdle', async 
   await dispatch(daemon, sid, 'implicit-late-call', 'late review', input);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-late-call'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-late-call'), false);
 
   const teammate = makeTranscript(t, 'implicit-late-member', 'implicit-late-member');
   teammate.append(...teammateEntries(
@@ -67,12 +67,12 @@ test('generic implicit team work survives SessionEnd until TeammateIdle', async 
     hook_event_name: 'TeammateIdle', session_id: 'implicit-late-member',
     transcript_path: teammate.file, team_name: TEAM, teammate_name: MEMBER,
   });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-late-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-late-call');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
 });
 
 test('ambiguous same-session markers fail closed and shutdown orphans all team markers', async (t) => {
@@ -94,18 +94,18 @@ test('ambiguous same-session markers fail closed and shutdown orphans all team m
   });
   await dispatch(daemon, sid, 'shutdown-dispatch', 'remote task');
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => isTeammateTurn(span)), false);
   const root = spans.find(span => span.attributes[ATTR.AGENT_NAME] === 'claude-code');
   const agents = spans.filter(span =>
     ['idle-a', 'idle-b'].includes(String(span.attributes[ATTR.AGENT_ID]))
-    || span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'shutdown-dispatch');
+    || span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'shutdown-dispatch');
   assert.ok(root);
   assert.equal(agents.length, 3);
   for (const agent of agents) {
-    assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], 'daemon_shutdown');
+    assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], 'daemon_shutdown');
     assert.equal(spanParentId(agent), root.spanContext().spanId);
     assert.deepEqual(agent.endTime, root.endTime);
   }

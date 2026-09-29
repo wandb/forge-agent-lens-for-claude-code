@@ -5,18 +5,18 @@
 # SPDX-PackageName: forge-claude-code
 
 # Receives a Claude Code lifecycle event on stdin (JSON) and forwards it to the
-# Forge daemon via Unix socket. Starts the daemon first if it is not running.
+# Forge Claude Code daemon via Unix socket. Starts the daemon first if it is not running.
 #
 # Assumptions:
 #   - forge-claude-code is on PATH (installed globally via npm install -g),
 #     which implies node is on PATH too.
 #
-# Errors are written to ~/.weave-claude-code/logs/hook-errors.log.
+# Errors are written to ~/.forge-claude-code/logs/hook-errors.log.
 # The script always exits 0 so it never disrupts Claude Code.
 
 set -uo pipefail
 
-CONFIG_DIR="${HOME}/.weave-claude-code"
+CONFIG_DIR="${HOME}/.forge-claude-code"
 SETTINGS_FILE="${CONFIG_DIR}/settings.json"
 ERROR_LOG="${CONFIG_DIR}/logs/hook-errors.log"
 SOCKET_PATH="${CONFIG_DIR}/daemon.sock"
@@ -44,18 +44,18 @@ if [ ! -f "${SETTINGS_FILE}" ]; then
 ========================================
 ERROR | Plugin not configured.
 Run:  forge-claude-code install
-Then: forge-claude-code config set weave_project ENTITY/PROJECT
+Then: forge-claude-code config set project ENTITY/PROJECT
 ========================================
 EOF
   exit 0
 fi
 
-# ── Weave configuration check ─────────────────────────────────────────────────
-# Skip silently if weave_project or WANDB_API_KEY is not set — the daemon would
+# ── tracing configuration check ───────────────────────────────────────────────
+# Skip silently if project or WANDB_API_KEY is not set: the daemon would
 # refuse to start anyway, and we avoid a 5 s socket-wait timeout per event.
 
-WEAVE_PROJECT_VALUE=$(grep -o '"weave_project" *: *"[^"]*"' "${SETTINGS_FILE}" 2>/dev/null | grep -o '"[^"]*"$' | tr -d '"')
-if [ -z "${WEAVE_PROJECT_VALUE}" ] && [ -z "${WEAVE_PROJECT:-}" ]; then
+PROJECT_VALUE=$(grep -o '"project" *: *"[^"]*"' "${SETTINGS_FILE}" 2>/dev/null | grep -o '"[^"]*"$' | tr -d '"')
+if [ -z "${PROJECT_VALUE}" ] && [ -z "${FORGE_TRACE_PROJECT:-}" ]; then
   exit 0
 fi
 
@@ -108,10 +108,9 @@ fi
 
 # ── forward event to daemon ───────────────────────────────────────────────────
 #
-# hook-socket.mjs send reads stdin, optionally merges WEAVE_PARENT_CALL_ID and
-# WEAVE_TRACE_ID env vars into the payload, then writes to the socket. It exits
-# 1 on connect failure; we log that to ERROR_LOG but always exit 0 so a hook
-# failure never disrupts Claude Code.
+# hook-socket.mjs send writes stdin to the socket. It exits 1 on connect
+# failure; we log that to ERROR_LOG but always exit 0 so a hook failure never
+# disrupts Claude Code.
 
 node "${HOOK_SOCKET}" send "${SOCKET_PATH}" 2>> "${ERROR_LOG}" || {
   echo "$(date -Iseconds) | ERROR | Failed to send event to daemon" >> "${ERROR_LOG}"

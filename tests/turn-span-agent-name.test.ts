@@ -8,17 +8,17 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { ATTR, DEFAULT_AGENT_NAME } from '../src/genaiSpans.ts';
-import { flushWeave, initWeaveInMemory, makeGenaiDaemon } from './helpers.ts';
+import { flushForge, initForgeInMemory, makeGenaiDaemon } from './helpers.ts';
 
 function writeTranscript(sessionId: string, text: string): { file: string; dir: string } {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), '.weave-agentname-'));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), '.forge-agentname-'));
   const file = path.join(dir, `${sessionId}.jsonl`);
   fs.writeFileSync(file, JSON.stringify({ type: 'user', message: { role: 'user', content: [{ type: 'text', text }] } }) + '\n');
   return { file, dir };
 }
 
 test('turn span: agentName drives gen_ai.agent.name', async () => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
 
   // A custom name and the default both flow through identically.
   for (const name of ['my-custom-agent', DEFAULT_AGENT_NAME]) {
@@ -30,7 +30,7 @@ test('turn span: agentName drives gen_ai.agent.name', async () => {
       await d.routeEvent({ hook_event_name: 'SessionStart', session_id: sid, transcript_path: file, source: 'startup', cwd: '/tmp' });
       await d.routeEvent({ hook_event_name: 'UserPromptSubmit', session_id: sid, prompt: 'hello' });
       await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-      await flushWeave();
+      await flushForge();
 
       const turnSpans = exporter.getFinishedSpans().filter(s => s.attributes[ATTR.OPERATION_NAME] === 'invoke_agent');
       assert.equal(turnSpans.length, 1, 'exactly one turn span');
@@ -43,7 +43,7 @@ test('turn span: agentName drives gen_ai.agent.name', async () => {
 });
 
 test('chat spans carry gen_ai.agent.name so children are attributed before the root closes', async () => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sess-chat-agent-name';
   const { file, dir } = writeTranscript(sid, 'hello');
@@ -61,7 +61,7 @@ test('chat spans carry gen_ai.agent.name so children are attributed before the r
     }) + '\n');
     await d.routeEvent({ hook_event_name: 'Stop', session_id: sid });
     await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-    await flushWeave();
+    await flushForge();
 
     const chats = exporter.getFinishedSpans().filter(s => s.attributes[ATTR.OPERATION_NAME] === 'chat');
     assert.equal(chats.length, 1, 'exactly one chat span');
