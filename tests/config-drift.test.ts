@@ -24,6 +24,7 @@ const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 const WARNING = /⚠ Config\s+daemon on an older config/;
 const STRIP = [
   'FORGE_TRACE_PROJECT', 'WANDB_API_KEY', 'FORGE_CLAUDE_CODE_AGENT_NAME', 'WANDB_BASE_URL', 'FORGE_CLAUDE_CODE_DEBUG',
+  'FORGE_TRACE_BASE_URL',
 ];
 
 let scratch: string;

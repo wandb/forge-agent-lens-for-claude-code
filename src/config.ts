@@ -105,12 +105,13 @@ export function resolveDaemonConfig(settings: Settings, env: NodeJS.ProcessEnv):
  *  SaaS API host remaps to. */
 const DEFAULT_TRACE_BASE_URL = 'https://trace.wandb.ai';
 
-/** Resolve the Weave trace server base URL for OTLP export. `WF_TRACE_SERVER_URL`
- *  wins when set. Otherwise `WANDB_BASE_URL` is used, but SaaS `api.wandb.ai` is
- *  the wandb API host with no OTLP route, so it maps to `trace.wandb.ai`; a
- *  self-hosted `WANDB_BASE_URL` passes through unchanged. */
+/** Resolve the Weave trace server base URL for OTLP export. `FORGE_TRACE_BASE_URL`
+ *  (the name other Forge integrations use), then `WF_TRACE_SERVER_URL`, wins when set.
+ *  Otherwise `WANDB_BASE_URL` is used, but SaaS `api.wandb.ai` is the wandb API
+ *  host with no OTLP route, so it maps to `trace.wandb.ai`; a self-hosted
+ *  `WANDB_BASE_URL` passes through unchanged. */
 function resolveTraceBaseUrl(env: NodeJS.ProcessEnv): string {
-  const explicit = env['WF_TRACE_SERVER_URL']?.trim();
+  const explicit = env['FORGE_TRACE_BASE_URL']?.trim() || env['WF_TRACE_SERVER_URL']?.trim();
   if (explicit) return explicit.replace(/\/+$/, '');
   const base = (env['WANDB_BASE_URL'] ?? DEFAULT_TRACE_BASE_URL).replace(/\/+$/, '');
   return /^https?:\/\/api\.wandb\.ai$/i.test(base) ? DEFAULT_TRACE_BASE_URL : base;

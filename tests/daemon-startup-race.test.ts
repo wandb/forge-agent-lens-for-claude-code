@@ -47,7 +47,7 @@ test('a herd of concurrent daemon starts crashes nobody and leaves exactly one l
   const N = 12;
   const procs = Array.from({ length: N }, () =>
     spawn(process.execPath, ['--import', 'tsx', CLI, 'daemon'], {
-      env: { ...process.env, HOME: home, WANDB_BASE_URL: 'http://127.0.0.1:1' },
+      env: { ...process.env, HOME: home, FORGE_TRACE_BASE_URL: 'http://127.0.0.1:1' },
       stdio: 'ignore',
     }),
   );

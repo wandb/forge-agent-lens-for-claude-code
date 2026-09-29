@@ -293,7 +293,7 @@ export async function startTestDaemon(
 
   const proc = spawn(process.execPath, ['--import', 'tsx', CLI, 'daemon'], {
     env: {
-      ...process.env, HOME: home, WANDB_BASE_URL: 'http://127.0.0.1:1',
+      ...process.env, HOME: home, FORGE_TRACE_BASE_URL: 'http://127.0.0.1:1',
       OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: '1000', ...opts.env,
     },
     stdio: 'ignore',

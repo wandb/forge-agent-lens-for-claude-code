@@ -336,9 +336,9 @@ suite('daemon signal cleanup', () => {
       ['--import', 'tsx', CLI, 'daemon'],
       {
         cwd: REPO_ROOT,
-        // Point WANDB_BASE_URL at a port that refuses connections so the OTel
+        // Point FORGE_TRACE_BASE_URL at a port that refuses connections so the OTel
         // exporter never reaches real wandb.ai during the test.
-        env: { ...process.env, HOME: w.home, WANDB_BASE_URL: 'http://127.0.0.1:1' },
+        env: { ...process.env, HOME: w.home, FORGE_TRACE_BASE_URL: 'http://127.0.0.1:1' },
         stdio: ['ignore', 'pipe', 'pipe'],
       },
     );

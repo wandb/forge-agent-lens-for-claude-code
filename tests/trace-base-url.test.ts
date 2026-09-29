@@ -34,3 +34,19 @@ test('trace base URL resolution across env combinations', () => {
     'https://trace.example.io',
   );
 });
+
+test('FORGE_TRACE_BASE_URL wins over WF_TRACE_SERVER_URL and WANDB_BASE_URL', () => {
+  assert.equal(
+    baseUrlFor({
+      FORGE_TRACE_BASE_URL: 'https://forge.example.io/',
+      WF_TRACE_SERVER_URL: 'https://trace.example.io',
+      WANDB_BASE_URL: 'https://my.wandb.io',
+    }),
+    'https://forge.example.io',
+  );
+  // A blank value falls through instead of producing an empty endpoint.
+  assert.equal(
+    baseUrlFor({ FORGE_TRACE_BASE_URL: ' ', WF_TRACE_SERVER_URL: 'https://trace.example.io' }),
+    'https://trace.example.io',
+  );
+});

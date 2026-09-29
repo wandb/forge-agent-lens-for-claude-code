@@ -63,7 +63,7 @@ function runRestart(home: string): Promise<{ stdout: string; stderr: string; cod
     delete env.FORGE_TRACE_PROJECT;
     delete env.FORGE_CLAUDE_CODE_AGENT_NAME;
     // Keep the OTel exporter from reaching real wandb.ai; refuse fast instead.
-    env.WANDB_BASE_URL = 'http://127.0.0.1:1';
+    env.FORGE_TRACE_BASE_URL = 'http://127.0.0.1:1';
     // Backstop: a daemon leaked by an assertion failure self-exits quickly.
     env.FORGE_CLAUDE_CODE_INACTIVITY_MS = '20000';
     const child = spawn(process.execPath, ['--import', 'tsx', CLI, 'restart'], { cwd: REPO_ROOT, env });
