@@ -134,31 +134,12 @@ export WANDB_BASE_URL=https://your-instance.wandb.io
 
 On SaaS, leave `WANDB_BASE_URL` unset (traces go to `https://trace.wandb.ai`). Setting it to the SaaS API host `https://api.wandb.ai` is handled automatically, since that host has no trace-ingest route. To send traces somewhere other than the wandb API host, set `WF_TRACE_SERVER_URL`, which takes precedence over `WANDB_BASE_URL`.
 
-**Important:** The plugin runs a background daemon that creates the Weave client at startup. If `WANDB_BASE_URL` is set after the daemon is already running, it will have no effect — the daemon must be restarted with the variable present in its environment.
+**Important:** The plugin runs a background daemon that reads `WANDB_BASE_URL` from its environment once, at startup. If the daemon is already running, set the variable and restart it from the same shell:
 
-**Workaround if the daemon is already running:**
-
-1. Shut down the daemon:
-   ```bash
-   printf '{"command":"shutdown"}' | nc -U -w1 ~/.weave-claude-code/daemon.sock
-   ```
-2. Point the plugin at your instance using either approach:
-
-   **Option A — environment variable** (takes effect for the current shell session):
-   ```bash
-   export WANDB_BASE_URL=https://your-instance.wandb.io
-   ```
-
-   **Option B — `wandb login`** (persists across sessions via `~/.config/wandb/settings`):
-   ```bash
-   wandb login --host https://your-instance.wandb.io
-   ```
-   This writes the host URL to `$HOME/.config/wandb/settings`, which the Weave client reads automatically — no env var required on future launches.
-
-3. Relaunch Claude Code — the daemon will start fresh and pick up the correct URL:
-   ```bash
-   claude
-   ```
+```bash
+export WANDB_BASE_URL=https://your-instance.wandb.io
+weave-claude-code restart
+```
 
 ---
 
