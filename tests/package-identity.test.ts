@@ -31,6 +31,8 @@ test('the Forge package ships a self-contained marketplace and matching CLI and 
 });
 
 test('release version bumps preserve the bundled plugin source', () => {
+  const [major, minor, patch] = readJson('../package.json').version.split('.').map(Number);
+  const next = `${major}.${minor}.${patch + 1}`;
   const scratch = new URL('../.context/', import.meta.url);
   mkdirSync(scratch, { recursive: true });
   const dir = mkdtempSync(new URL('release-test-', scratch));
@@ -40,16 +42,16 @@ test('release version bumps preserve the bundled plugin source', () => {
       'scripts/release/bump-version.mjs', 'scripts/release/version-module-utils.mjs']) {
       cpSync(new URL(`../${file}`, import.meta.url), join(dir, file), { recursive: true });
     }
-    const result = spawnSync(process.execPath, [join(dir, 'scripts/release/bump-version.mjs'), '0.2.15'], {
+    const result = spawnSync(process.execPath, [join(dir, 'scripts/release/bump-version.mjs'), next], {
       encoding: 'utf8',
     });
     assert.equal(result.status, 0, result.stderr);
     for (const file of ['package.json', 'package-lock.json', '.claude-plugin/plugin.json', '.claude-plugin/marketplace.json']) {
-      assert.equal(JSON.parse(readFileSync(join(dir, file), 'utf8')).version, '0.2.15');
+      assert.equal(JSON.parse(readFileSync(join(dir, file), 'utf8')).version, next);
     }
     const marketplace = JSON.parse(readFileSync(join(dir, '.claude-plugin/marketplace.json'), 'utf8'));
     assert.equal(marketplace.plugins[0].source, './');
-    assert.equal(marketplace.plugins[0].version, '0.2.15');
+    assert.equal(marketplace.plugins[0].version, next);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
