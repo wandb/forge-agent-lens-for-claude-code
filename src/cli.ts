@@ -769,6 +769,11 @@ async function cmdUninstall(keepLogs: boolean): Promise<void> {
   } else {
     console.log(`✓ Claude marketplace ${pluginResult.marketplaceStatus === RemovalStatus.AlreadyAbsent ? 'already removed' : 'removed'}`);
   }
+  if (pluginResult.legacyMarketplaceStatus === RemovalStatus.Removed) {
+    console.log(`✓ Removed the ${LEGACY_MARKETPLACE_NAME} marketplace`);
+  } else if (pluginResult.legacyMarketplaceStatus === RemovalStatus.Failed) {
+    console.warn(`⚠ ${pluginResult.legacyMarketplaceError}`);
+  }
 
   if (fs.existsSync(SETTINGS_FILE)) {
     fs.unlinkSync(SETTINGS_FILE);
@@ -791,6 +796,19 @@ async function cmdUninstall(keepLogs: boolean): Promise<void> {
     console.log('✓ Removed config directory');
   } catch {
     // Non-empty (e.g., logs kept) — leave it
+  }
+
+  // The pre-rename settings hold an API key, and install would migrate them back.
+  const legacySettings = path.join(LEGACY_CONFIG_DIR, 'settings.json');
+  if (fs.existsSync(legacySettings)) {
+    fs.unlinkSync(legacySettings);
+    console.log(`✓ Removed the pre-rename configuration in ${LEGACY_CONFIG_DIR}`);
+  }
+  if (!keepLogs) fs.rmSync(path.join(LEGACY_CONFIG_DIR, 'logs'), { recursive: true, force: true });
+  try {
+    fs.rmdirSync(LEGACY_CONFIG_DIR);
+  } catch {
+    // Absent, or holds kept logs.
   }
 
   console.log('\n✓ Uninstall complete!');

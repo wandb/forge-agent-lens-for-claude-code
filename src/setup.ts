@@ -116,8 +116,10 @@ export enum RemovalStatus {
 export interface UninstallResult {
   marketplaceStatus: RemovalStatus;
   pluginStatus: RemovalStatus;
+  legacyMarketplaceStatus: RemovalStatus;
   marketplaceError?: string;
   pluginError?: string;
+  legacyMarketplaceError?: string;
 }
 
 export const CONFIG_DIR = path.join(os.homedir(), '.forge-claude-code');
@@ -397,28 +399,33 @@ export function registerPlugin(
 
   const { updated: pluginUpdated } = maybeUpdateOutdatedPlugin(claudePath, logFile, refDrifted, pluginAlready);
 
+  // After the new plugin installed, so a failed install keeps the old one tracing.
+  const legacy = removeLegacyMarketplace(claudePath);
+  if (legacy.error) appendToLog(logFile, 'ERROR', legacy.error);
+
   return {
     marketplaceStatus: mktAlready ? MarketplaceStatus.AlreadyRegistered : MarketplaceStatus.Registered,
     pluginStatus: pluginAlready ? PluginStatus.AlreadyInstalled : PluginStatus.Installed,
     pluginUpdated,
     refBefore,
     refAfter,
-    legacyMarketplace: removeLegacyMarketplace(claudePath, logFile),
+    legacyMarketplace: legacy.status,
   };
 }
 
-/** Removing the marketplace also uninstalls its plugin. Runs after the new
- *  plugin installed, so a failed install keeps the old one tracing. */
-function removeLegacyMarketplace(claudePath: string, logFile: string): RemovalStatus {
-  if (!isMarketplaceRegistered(LEGACY_MARKETPLACE_NAME)) return RemovalStatus.AlreadyAbsent;
+/** Removing the marketplace also uninstalls its plugin. */
+function removeLegacyMarketplace(claudePath: string): { status: RemovalStatus; error?: string } {
+  if (!isMarketplaceRegistered(LEGACY_MARKETPLACE_NAME)) return { status: RemovalStatus.AlreadyAbsent };
   const result = spawnSync(
     claudePath,
     ['plugin', 'marketplace', 'remove', LEGACY_MARKETPLACE_NAME],
     CLAUDE_SPAWN_OPTS,
   );
-  if (result.status === 0) return RemovalStatus.Removed;
-  appendToLog(logFile, 'ERROR', `Failed to remove marketplace '${LEGACY_MARKETPLACE_NAME}': ${combinedOutput(result).trim()}`);
-  return RemovalStatus.Failed;
+  if (result.status === 0) return { status: RemovalStatus.Removed };
+  return {
+    status: RemovalStatus.Failed,
+    error: `Failed to remove marketplace '${LEGACY_MARKETPLACE_NAME}': ${combinedOutput(result).trim()}`,
+  };
 }
 
 /**
@@ -460,8 +467,10 @@ export function unregisterPlugin(): UninstallResult {
     return {
       pluginStatus: RemovalStatus.Failed,
       marketplaceStatus: RemovalStatus.Failed,
+      legacyMarketplaceStatus: RemovalStatus.Failed,
       pluginError: msg,
       marketplaceError: msg,
+      legacyMarketplaceError: msg,
     };
   }
 
@@ -509,11 +518,15 @@ export function unregisterPlugin(): UninstallResult {
     marketplaceStatus = RemovalStatus.AlreadyAbsent;
   }
 
+  const legacy = removeLegacyMarketplace(claudePath);
+
   return {
     pluginStatus,
     marketplaceStatus,
+    legacyMarketplaceStatus: legacy.status,
     pluginError,
     marketplaceError,
+    legacyMarketplaceError: legacy.error,
   };
 }
 

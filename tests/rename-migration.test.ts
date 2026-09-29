@@ -151,3 +151,25 @@ test('install on a pre-rename home migrates the config and drops the old plugin'
   assert.match(r.stdout, /npm uninstall -g weave-claude-code/);
   assert.equal(readSettings(path.join(tmpHome, '.forge-claude-code'))['project'], 'old-entity/old-project');
 });
+
+test('uninstall removes the pre-rename config and marketplace so a later install starts fresh', async () => {
+  const legacyDir = path.join(tmpHome, '.weave-claude-code');
+  writeLegacySettings(legacyDir);
+  const env = { PATH: `${FAKE_CLAUDE_BIN_DIR}:${process.env.PATH}`, FAKE_CLAUDE_MARKETPLACE_NAME: MARKETPLACE_NAME };
+  assert.equal((await runCli(tmpHome, ['install', '--non-interactive'], env)).code, 0);
+  // An old install re-run after the upgrade registers its marketplace again.
+  const knownPath = path.join(tmpHome, '.claude', 'plugins', 'known_marketplaces.json');
+  const known = JSON.parse(fs.readFileSync(knownPath, 'utf8'));
+  known[LEGACY_MARKETPLACE_NAME] = { source: { source: 'github', repo: 'wandb/weave-claude-code', ref: 'v0.2.15' } };
+  fs.writeFileSync(knownPath, JSON.stringify(known));
+
+  const uninstall = await runCli(tmpHome, ['uninstall'], env, 'y\n');
+  assert.equal(uninstall.code, 0, uninstall.stdout);
+  assert.equal(fs.existsSync(path.join(legacyDir, 'settings.json')), false);
+  assert.equal(JSON.parse(fs.readFileSync(knownPath, 'utf8'))[LEGACY_MARKETPLACE_NAME], undefined);
+
+  const again = await runCli(tmpHome, ['install', '--non-interactive'], env);
+  assert.equal(again.code, 0, again.stdout);
+  assert.doesNotMatch(again.stdout, /Configuration migrated/);
+  assert.equal(readSettings(path.join(tmpHome, '.forge-claude-code'))['project'], null);
+});

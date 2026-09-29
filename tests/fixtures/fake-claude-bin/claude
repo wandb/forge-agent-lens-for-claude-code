@@ -16,6 +16,7 @@
 //                                            installed; logs the call so tests can
 //                                            assert it was invoked.
 //   plugin marketplace remove <name>      — drops the registration; fails when absent.
+//   plugin uninstall <plugin>@<marketplace> — drops the plugin; fails when absent.
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -104,6 +105,20 @@ if (args[0] === 'plugin' && args[1] === 'install') {
   installed[spec] = { installedAt: new Date().toISOString() };
   writeJSON(installedPath, installed);
   console.log(`✔ Installed plugin "${spec}"`);
+  process.exit(0);
+}
+
+// plugin uninstall <plugin>@<marketplace> --scope user
+if (args[0] === 'plugin' && args[1] === 'uninstall') {
+  const spec = args[2];
+  const installed = readJSON(installedPath);
+  if (!installed[spec]) {
+    console.error(`✘ Plugin "${spec}" is not installed`);
+    process.exit(1);
+  }
+  delete installed[spec];
+  writeJSON(installedPath, installed);
+  console.log(`✔ Uninstalled plugin "${spec}"`);
   process.exit(0);
 }
 

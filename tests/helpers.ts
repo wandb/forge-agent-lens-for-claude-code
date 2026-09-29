@@ -47,7 +47,12 @@ export function seedConfigHome(label: string): { home: string; settingsFile: str
  * code. Inherited credential/agent env vars are stripped so tests start from a
  * clean slate; `extraEnv` is applied last so a test can opt back into one.
  */
-export function runCli(home: string, args: string[], extraEnv: Record<string, string> = {}): Promise<{ stdout: string; code: number | null }> {
+export function runCli(
+  home: string,
+  args: string[],
+  extraEnv: Record<string, string> = {},
+  stdin?: string,
+): Promise<{ stdout: string; code: number | null }> {
   return new Promise((resolve, reject) => {
     const env = { ...process.env, HOME: home };
     delete env.WANDB_API_KEY;
@@ -57,6 +62,7 @@ export function runCli(home: string, args: string[], extraEnv: Record<string, st
     delete env.WEAVE_AGENT_NAME;
     Object.assign(env, extraEnv);
     const child = spawn(process.execPath, ['--import', 'tsx', CLI, ...args], { cwd: REPO_ROOT, env });
+    if (stdin !== undefined) child.stdin.end(stdin);
     let stdout = '';
     child.stdout.on('data', (b) => { stdout += b.toString(); });
     child.on('error', reject);
