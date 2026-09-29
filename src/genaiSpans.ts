@@ -129,7 +129,6 @@ export function buildIntegrationAttrs(args: {
   meta?: Record<string, string | undefined>;
 }): Attributes {
   const attrs: Attributes = {
-    'weave.source': 'forge-integration',
     [ATTR.FORGE_INTEGRATION_NAME]: INTEGRATION_NAME,
     [ATTR.FORGE_INTEGRATION_VERSION]: args.version,
   };

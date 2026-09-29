@@ -198,9 +198,9 @@ conversations are stitched together server-side via
 every span in the turn.
 
 Spans are built with the [CoreWeave Forge SDK](https://www.npmjs.com/package/@coreweave/forge-sdk).
-Every span carries `weave.source = forge-integration` and the
-`forge.integration.*` identity of this plugin; the OTLP resource reports
-`service.name = forge-claude-code` and `wandb.sdk.name = forge`.
+Every span carries the `forge.integration.*` identity of this plugin; the
+OTLP resource reports `service.name = forge-claude-code` and
+`wandb.sdk.name = forge`.
 
 ```
 invoke_agent claude-code                  (root — one trace per user prompt)

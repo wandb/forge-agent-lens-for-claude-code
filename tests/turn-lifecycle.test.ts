@@ -119,7 +119,7 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
 
   const spans = exporter.getFinishedSpans();
   for (const span of spans) {
-    assert.equal(span.attributes['weave.source'], 'forge-integration');
+    assert.equal(span.attributes[ATTR.FORGE_INTEGRATION_NAME], 'forge-claude-code');
     assert.equal(span.resource.attributes['wandb.sdk.name'], 'forge');
   }
   const [turn] = turns(spans);
