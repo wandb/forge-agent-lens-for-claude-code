@@ -124,25 +124,6 @@ This is especially useful with `forge-claude-code install --non-interactive`, wh
 
 ---
 
-## Sending Traces to a Dedicated or Private W&B Instance
-
-If you use W&B Dedicated Cloud or a self-hosted instance, set `WANDB_BASE_URL` to point the plugin at your deployment before launching Claude Code:
-
-```bash
-export WANDB_BASE_URL=https://your-instance.wandb.io
-```
-
-Traces then go to the instance's trace server at `https://your-instance.wandb.io/traces`. On SaaS, leave `WANDB_BASE_URL` unset (traces go to `https://trace.wandb.ai`). Setting it to the SaaS API host `https://api.wandb.ai` is handled automatically, since that host has no trace-ingest route. To send traces somewhere other than the wandb API host, set `FORGE_TRACE_BASE_URL`. It takes precedence over `WF_TRACE_SERVER_URL`, which takes precedence over `WANDB_BASE_URL`.
-
-**Important:** The plugin runs a background daemon that reads `WANDB_BASE_URL` from its environment once, at startup. If the daemon is already running, set the variable and restart it from the same shell:
-
-```bash
-export WANDB_BASE_URL=https://your-instance.wandb.io
-forge-claude-code restart
-```
-
----
-
 ## Check Status
 
 ```bash
@@ -266,6 +247,29 @@ forge-claude-code uninstall
 ```
 
 Pass `--keep-logs` to preserve the log directory.
+
+---
+
+## Dedicated and On-Prem Instances
+
+Only needed for W&B Dedicated Cloud or a self-hosted instance. On SaaS, traces go to `https://trace.wandb.ai` with no setup.
+
+Set `WANDB_BASE_URL` to your deployment before launching Claude Code:
+
+```bash
+export WANDB_BASE_URL=https://your-instance.wandb.io
+```
+
+Traces then go to its trace server at `https://your-instance.wandb.io/traces`. Setting `WANDB_BASE_URL` to the SaaS API host, `https://api.wandb.ai`, still sends traces to `https://trace.wandb.ai`.
+
+To use a different trace server, set `FORGE_TRACE_BASE_URL` to its URL. It takes precedence over `WF_TRACE_SERVER_URL`, which takes precedence over `WANDB_BASE_URL`.
+
+The daemon reads these variables once, at startup. If it is already running, set them and restart it from the same shell:
+
+```bash
+export WANDB_BASE_URL=https://your-instance.wandb.io
+forge-claude-code restart
+```
 
 ---
 
