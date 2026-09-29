@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 import { test, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';

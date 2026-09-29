@@ -71,16 +71,6 @@ jobs:
           git add src/version.mjs package.json package-lock.json .claude-plugin/plugin.json .claude-plugin/marketplace.json
           git commit -m "chore: bump version to $VERSION"
 
-      - name: Create marketplace sha commit
-        env:
-          VERSION: ${{ github.event.inputs.version }}
-        run: |
-          set -euo pipefail
-          FIRST_COMMIT_SHA="$(git rev-parse HEAD)"
-          node scripts/release/update-marketplace-sha.mjs "$FIRST_COMMIT_SHA"
-          git add .claude-plugin/marketplace.json
-          git commit -m "chore: update marketplace sha for v$VERSION"
-
       - name: Create release tag
         env:
           VERSION: ${{ github.event.inputs.version }}

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 // registerPlugin ref-drift: a CLI upgrade that changes MARKETPLACE_REF must
 // follow `plugin install` with `plugin update` to refresh the loaded plugin.
@@ -16,7 +16,7 @@ import { readFakeCalls, writeKnownMarketplace } from './helpers.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FAKE_CLAUDE_BIN_DIR = path.join(HERE, 'fixtures', 'fake-claude-bin');
-const PLUGIN_SPEC = `weave@${MARKETPLACE_NAME}`;
+const PLUGIN_SPEC = `forge@${MARKETPLACE_NAME}`;
 const KNOWN_MARKETPLACES_REL = path.join('.claude', 'plugins', 'known_marketplaces.json');
 
 function seedInstalledPlugin(home: string): void {

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 import * as fs from 'fs';
 import * as net from 'net';
@@ -231,7 +231,7 @@ export class Daemon {
     await tracing.init(this.config.weaveProject, {
       apiKey: this.config.apiKey,
       baseUrl: this.config.baseUrl,
-      serviceName: 'weave-claude-code',
+      serviceName: 'forge-claude-code',
     });
     this.tracingEnabled = true;
   }

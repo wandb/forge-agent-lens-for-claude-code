@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 // Attribute-key constants and formatting helpers typed against the Forge SDK.
 
@@ -9,7 +9,7 @@ import type { MessagePart, SubAgent, Tool, Turn, Usage } from '@coreweave/forge-
 import { isTextBlock, isThinkingBlock, isRedactedThinkingBlock, isToolUseBlock } from './parser.js';
 import type { UsageSummary } from './parser.js';
 
-/** Weave's two public invoke-agent handles that can own chat, tool, and
+/** Forge's two public invoke-agent handles that can own chat, tool, and
  * subagent spans. The SDK does not currently export a common parent type. */
 export type SpanParent = Turn | SubAgent;
 
@@ -61,7 +61,7 @@ export const ATTR = {
   // the Agent call that spawned it (correlation without walking the tree).
   WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID: 'weave.claude_code.subagent.spawning_tool_call_id',
 
-  // Weave Agents backend - compaction
+  // Forge AgentLens backend - compaction
   COMPACTION_SUMMARY: 'weave.compaction.summary',
   COMPACTION_ITEMS_BEFORE: 'weave.compaction.items_before',
   COMPACTION_ITEMS_AFTER: 'weave.compaction.items_after',
@@ -77,7 +77,7 @@ export const ATTR = {
  *  `agent_name` / `WEAVE_AGENT_NAME`. */
 export const DEFAULT_AGENT_NAME = 'claude-code';
 
-const INTEGRATION_NAME = 'weave-claude-code';
+const INTEGRATION_NAME = 'forge-claude-code';
 
 /** Free-form integration metadata prefix: new fields (e.g.
  *  `claude_code_app_version`) need no new attribute constant. */

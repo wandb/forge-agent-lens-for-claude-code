@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -32,7 +32,7 @@ test('turn span: agentName drives gen_ai.agent.name', async () => {
       await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
       await flushWeave();
 
-      const turnSpans = exporter.getFinishedSpans().filter(s => s.name === 'invoke_agent');
+      const turnSpans = exporter.getFinishedSpans().filter(s => s.attributes[ATTR.OPERATION_NAME] === 'invoke_agent');
       assert.equal(turnSpans.length, 1, 'exactly one turn span');
       assert.equal(turnSpans[0].attributes[ATTR.AGENT_NAME], name, `gen_ai.agent.name must be "${name}"`);
     } finally {
@@ -62,7 +62,7 @@ test('chat spans carry gen_ai.agent.name so children are attributed before the r
     await d.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
     await flushWeave();
 
-    const chats = exporter.getFinishedSpans().filter(s => s.name === 'chat');
+    const chats = exporter.getFinishedSpans().filter(s => s.attributes[ATTR.OPERATION_NAME] === 'chat');
     assert.equal(chats.length, 1, 'exactly one chat span');
     assert.equal(chats[0].attributes[ATTR.AGENT_NAME], 'my-custom-agent');
   } finally {

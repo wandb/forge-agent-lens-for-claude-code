@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 // Only failures are observable: the SDK owns the exporter, so nothing signals success. Per process.
 export type ExportErrorSnapshot = {

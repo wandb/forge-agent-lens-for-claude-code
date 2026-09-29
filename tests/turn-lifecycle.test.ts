@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 import { test, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
@@ -120,7 +120,7 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
   const spans = exporter.getFinishedSpans();
   for (const span of spans) {
     assert.equal(span.attributes['weave.source'], 'forge-integration');
-    assert.equal(span.resource.attributes['weave.sdk.name'], 'forge');
+    assert.equal(span.resource.attributes['wandb.sdk.name'], 'forge');
   }
   const [turn] = turns(spans);
   const responseSpans = chats(spans);
@@ -140,7 +140,7 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
     ]),
   );
   assert.deepEqual(turn.attributes[ATTR.RESPONSE_FINISH_REASONS], ['end_turn']);
-  assert.equal(turn.attributes[ATTR.WEAVE_INTEGRATION_NAME], 'weave-claude-code');
+  assert.equal(turn.attributes[ATTR.WEAVE_INTEGRATION_NAME], 'forge-claude-code');
   assert.equal(turn.attributes[ATTR.WEAVE_INTEGRATION_VERSION], VERSION);
   assert.equal(turn.attributes['weave.integration.meta.claude_code_app_version'], '1.2.3');
   assert.equal(responseSpans[0].attributes[ATTR.USAGE_INPUT_TOKENS], 30);

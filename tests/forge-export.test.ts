@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -47,7 +47,7 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
       assert.equal(request.headers['wandb-api-key'], 'wire-test-key');
       assert.equal(request.headers.project_id, 'test/test');
       assert.ok(request.body.includes(Buffer.from('forge-integration')));
-      assert.ok(request.body.includes(Buffer.from('weave.sdk.name')));
+      assert.ok(request.body.includes(Buffer.from('wandb.sdk.name')));
     }
     assert.doesNotMatch(daemon.readLog(), /Error flushing|OTLPExporterError/);
   } finally {

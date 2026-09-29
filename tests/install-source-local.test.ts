@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 // `registerPlugin` with InstallSource.Local must register the marketplace from
 // the npm-installed package on disk (no git clone), so CI/sandbox environments
@@ -19,7 +19,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FAKE_CLAUDE_BIN_DIR = path.join(HERE, 'fixtures', 'fake-claude-bin');
 
 function seedLocalPluginTree(npmPrefix: string): string {
-  const pkgDir = path.join(npmPrefix, 'lib', 'node_modules', 'weave-claude-code');
+  const pkgDir = path.join(npmPrefix, 'lib', 'node_modules', 'forge-claude-code');
   fs.mkdirSync(path.join(pkgDir, '.claude-plugin'), { recursive: true });
   fs.writeFileSync(
     path.join(pkgDir, '.claude-plugin', 'marketplace.json'),
@@ -71,7 +71,7 @@ suite('install --source=local', () => {
 
     assert.equal(findLocalPluginPath(), null, 'no install: expected null');
 
-    const dir = path.join(tmpNpmPrefix, 'lib', 'node_modules', 'weave-claude-code');
+    const dir = path.join(tmpNpmPrefix, 'lib', 'node_modules', 'forge-claude-code');
     fs.mkdirSync(dir, { recursive: true });
     assert.equal(findLocalPluginPath(), null, 'dir without marketplace.json: expected null');
 
@@ -108,7 +108,7 @@ suite('install --source=local', () => {
 
     assert.throws(
       () => registerPlugin(path.join(tmpHome, 'log.txt'), InstallSource.Local),
-      /npm install -g weave-claude-code/,
+      /npm install -g forge-claude-code/,
     );
   });
 

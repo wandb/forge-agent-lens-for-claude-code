@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-PackageName: forge-claude-code
 
 // The daemon captures instruction files from the InstructionsLoaded hook and
 // stamps them on every turn root as `gen_ai.system_instructions`. The hook
