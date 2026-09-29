@@ -24,9 +24,11 @@ test('trace base URL resolution across env combinations', () => {
   assert.equal(baseUrlFor({ WANDB_BASE_URL: 'https://api.wandb.ai/' }), 'https://trace.wandb.ai');
   assert.equal(baseUrlFor({ WANDB_BASE_URL: 'HTTPS://API.WANDB.AI' }), 'https://trace.wandb.ai');
 
-  // Self-hosted / dedicated base URL passes through unchanged (trailing slash trimmed).
-  assert.equal(baseUrlFor({ WANDB_BASE_URL: 'https://my.wandb.io' }), 'https://my.wandb.io');
-  assert.equal(baseUrlFor({ WANDB_BASE_URL: 'https://my.wandb.io/' }), 'https://my.wandb.io');
+  // Dedicated and self-hosted instances serve the trace server under /traces.
+  assert.equal(baseUrlFor({ WANDB_BASE_URL: 'https://my.wandb.io' }), 'https://my.wandb.io/traces');
+  assert.equal(baseUrlFor({ WANDB_BASE_URL: 'https://my.wandb.io/' }), 'https://my.wandb.io/traces');
+  // A blank value falls back to SaaS instead of producing a bare `/traces` endpoint.
+  assert.equal(baseUrlFor({ WANDB_BASE_URL: ' ' }), 'https://trace.wandb.ai');
 
   // Explicit trace server URL wins over WANDB_BASE_URL and is not remapped.
   assert.equal(

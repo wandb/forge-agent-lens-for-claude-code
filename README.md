@@ -132,7 +132,7 @@ If you use W&B Dedicated Cloud or a self-hosted instance, set `WANDB_BASE_URL` t
 export WANDB_BASE_URL=https://your-instance.wandb.io
 ```
 
-On SaaS, leave `WANDB_BASE_URL` unset (traces go to `https://trace.wandb.ai`). Setting it to the SaaS API host `https://api.wandb.ai` is handled automatically, since that host has no trace-ingest route. To send traces somewhere other than the wandb API host, set `FORGE_TRACE_BASE_URL`. It takes precedence over `WF_TRACE_SERVER_URL`, which takes precedence over `WANDB_BASE_URL`.
+Traces then go to the instance's trace server at `https://your-instance.wandb.io/traces`. On SaaS, leave `WANDB_BASE_URL` unset (traces go to `https://trace.wandb.ai`). Setting it to the SaaS API host `https://api.wandb.ai` is handled automatically, since that host has no trace-ingest route. To send traces somewhere other than the wandb API host, set `FORGE_TRACE_BASE_URL`. It takes precedence over `WF_TRACE_SERVER_URL`, which takes precedence over `WANDB_BASE_URL`.
 
 **Important:** The plugin runs a background daemon that reads `WANDB_BASE_URL` from its environment once, at startup. If the daemon is already running, set the variable and restart it from the same shell:
 
