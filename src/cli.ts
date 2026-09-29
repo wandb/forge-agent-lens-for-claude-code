@@ -12,6 +12,7 @@ import {
   CONFIG_DIR,
   SETTINGS_FILE,
   MARKETPLACE_NAME,
+  NPM_PACKAGE_NAME,
   VERSION,
   InstallSource,
   MarketplaceStatus,
@@ -69,7 +70,7 @@ Options:
   --source=<src>     Where 'install' pulls the marketplace from:
                        github (default) - clone wandb/weave-claude-code over git
                        local            - register the npm-installed tree on disk
-                                          (requires 'npm install -g forge-claude-code';
+                                          (requires 'npm install -g ${NPM_PACKAGE_NAME}';
                                           use in CI/sandboxes without git/SSH access)
 
 Examples:
@@ -598,7 +599,7 @@ function printPrettyStatus(snap: StatusSnapshot): void {
   if (report.cli_path) {
     statusRow('✓', 'CLI', `v${report.version}   ${abbrevHome(report.cli_path)}`);
   } else {
-    statusRow('✗', 'CLI', 'not found in PATH', 'npm install -g forge-claude-code');
+    statusRow('✗', 'CLI', 'not found in PATH', `npm install -g ${NPM_PACKAGE_NAME}`);
   }
   if (report.plugin_source === null) {
     statusRow('✗', 'Source', 'not registered', 'forge-claude-code install');

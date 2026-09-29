@@ -7,7 +7,7 @@ import { readFileSync, existsSync, mkdirSync, mkdtempSync, cpSync, rmSync } from
 import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
-import { MARKETPLACE_NAME, PLUGIN_NAME } from '../src/setup.ts';
+import { MARKETPLACE_NAME, NPM_PACKAGE_NAME, PLUGIN_NAME } from '../src/setup.ts';
 
 const readJson = (file: string) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 
@@ -15,10 +15,15 @@ test('the Forge package ships a self-contained marketplace and matching CLI and 
   const pkg = readJson('../package.json');
   const marketplace = readJson('../.claude-plugin/marketplace.json');
   const plugin = readJson('../.claude-plugin/plugin.json');
-  assert.equal(pkg.name, 'forge-claude-code');
+  assert.equal(pkg.name, '@coreweave/forge-claude-code');
+  assert.equal(NPM_PACKAGE_NAME, pkg.name);
+  // npm publishes scoped packages as restricted unless told otherwise.
+  assert.equal(pkg.publishConfig?.access, 'public');
   assert.equal(pkg.bin['forge-claude-code'], 'dist/cli.js');
   assert.equal(marketplace.name, MARKETPLACE_NAME);
-  assert.equal(MARKETPLACE_NAME, pkg.name);
+  // Existing installs are registered as forge@forge-claude-code, so the
+  // marketplace keeps its name when the npm package name changes.
+  assert.equal(MARKETPLACE_NAME, 'forge-claude-code');
   assert.equal(plugin.name, 'forge');
   assert.equal(plugin.name, PLUGIN_NAME);
   assert.equal(marketplace.plugins[0].name, plugin.name);

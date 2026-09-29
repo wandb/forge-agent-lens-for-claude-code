@@ -33,7 +33,7 @@ mkdir -p "${CONFIG_DIR}/logs"
 # ── dependency checks ─────────────────────────────────────────────────────────
 
 if ! command -v forge-claude-code >/dev/null 2>&1; then
-  echo "$(date -Iseconds) | ERROR | forge-claude-code not found in PATH. Run: npm install -g forge-claude-code" >> "${ERROR_LOG}"
+  echo "$(date -Iseconds) | ERROR | forge-claude-code not found in PATH. Run: npm install -g @coreweave/forge-claude-code" >> "${ERROR_LOG}"
   exit 0
 fi
 
