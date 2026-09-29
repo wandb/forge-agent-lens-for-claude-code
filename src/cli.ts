@@ -68,7 +68,7 @@ Options:
   --help, -h         Print this help message
   --non-interactive  Skip install prompts and rely on env/config values
   --source=<src>     Where 'install' pulls the marketplace from:
-                       github (default) - clone wandb/weave-claude-code over git
+                       github (default) - clone wandb/forge-claude-code over git
                        local            - register the npm-installed tree on disk
                                           (requires 'npm install -g ${NPM_PACKAGE_NAME}';
                                           use in CI/sandboxes without git/SSH access)

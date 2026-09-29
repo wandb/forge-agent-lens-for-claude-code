@@ -123,7 +123,7 @@ export const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 // Claude Code plugin marketplace coordinates. Pin installs to a release tag so
 // new users never consume whatever happens to be on the default branch at
 // install time.
-export const MARKETPLACE_REPO = 'wandb/weave-claude-code';
+export const MARKETPLACE_REPO = 'wandb/forge-claude-code';
 export const MARKETPLACE_REF = `v${VERSION}`;
 export const MARKETPLACE_SOURCE = `${MARKETPLACE_REPO}#${MARKETPLACE_REF}`;
 export const MARKETPLACE_NAME = 'forge-claude-code';

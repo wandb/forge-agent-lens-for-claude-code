@@ -1,7 +1,7 @@
 # Forge Claude Code Plugin
 
 [![npm](https://img.shields.io/npm/v/@coreweave/forge-claude-code)](https://www.npmjs.com/package/@coreweave/forge-claude-code)
-[![CI](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/wandb/weave-claude-code/actions/workflows/format-and-lint.yaml)
+[![CI](https://github.com/wandb/forge-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/wandb/forge-claude-code/actions/workflows/format-and-lint.yaml)
 [![license](https://img.shields.io/npm/l/@coreweave/forge-claude-code)](LICENSES/Apache-2.0.txt)
 [![node](https://img.shields.io/node/v/@coreweave/forge-claude-code)](package.json)
 
@@ -41,7 +41,7 @@ In non-interactive mode, the installer still creates config, registers the Claud
 - Warns and continues if either value is missing
 - Leaves environment-provided values in the environment rather than writing them into `settings.json`
 
-By default, `claude plugin marketplace add` clones `wandb/weave-claude-code` from GitHub. In CI or container sandboxes without git/SSH access to GitHub, pass `--source=local` to register the marketplace from the npm-installed tree on disk instead:
+By default, `claude plugin marketplace add` clones `wandb/forge-claude-code` from GitHub. In CI or container sandboxes without git/SSH access to GitHub, pass `--source=local` to register the marketplace from the npm-installed tree on disk instead:
 
 ```bash
 npm install -g @coreweave/forge-claude-code

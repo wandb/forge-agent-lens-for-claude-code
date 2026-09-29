@@ -239,9 +239,9 @@ const PLUGIN_SOURCE_CASES: ReadonlyArray<PluginSourceCase> = [
   {
     name: 'github source',
     setup: () => ({
-      seed: { source: 'github', repo: 'wandb/weave-claude-code', ref: 'v0.2.7' },
-      expectInPretty: 'github wandb/weave-claude-code @ v0.2.7',
-      expectJson: { type: 'github', repo: 'wandb/weave-claude-code', ref: 'v0.2.7' },
+      seed: { source: 'github', repo: 'wandb/forge-claude-code', ref: 'v0.2.7' },
+      expectInPretty: 'github wandb/forge-claude-code @ v0.2.7',
+      expectJson: { type: 'github', repo: 'wandb/forge-claude-code', ref: 'v0.2.7' },
     }),
   },
   {
