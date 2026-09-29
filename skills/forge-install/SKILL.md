@@ -46,14 +46,14 @@ The output will include one of:
 
 If `--force` is needed (e.g., rebuilding a corrupted settings.json), run `forge-claude-code install --force`.
 
-## Step 3 — Configure the project
+## Step 3 — Configure the Forge project
 
 Check if `project` is already set:
 ```bash
 forge-claude-code config get project
 ```
 
-If it returns `(not set)`, ask the user for `entity/project` and set it:
+If it returns `(not set)`, ask the user for their Forge project (`entity/project`) and set it:
 ```bash
 forge-claude-code config set project ENTITY/PROJECT
 ```
@@ -86,4 +86,4 @@ forge-claude-code status
 
 All items should show `✓`. If anything shows `✗`, diagnose and fix before reporting success.
 
-On success, tell the user Claude Code sessions will now be traced to their project starting from the next session. If a `Plugin updated` or `Marketplace refreshed` line appeared in Step 2, remind them to run `/reload-plugins` (or restart Claude Code) so the running session picks up the new code.
+On success, tell the user Claude Code sessions will now be traced to their Forge project starting from the next session. If a `Plugin updated` or `Marketplace refreshed` line appeared in Step 2, remind them to run `/reload-plugins` (or restart Claude Code) so the running session picks up the new code.

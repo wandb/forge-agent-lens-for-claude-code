@@ -24,7 +24,7 @@ forge-claude-code install
 This will:
 - Create `~/.forge-claude-code/settings.json`
 - Register the plugin in Claude Code
-- Prompt for the W&B project that receives traces (`entity/project`) and your W&B API key if not already set
+- Prompt for your Forge project (`entity/project`) and W&B API key if not already set
 
 Your W&B API key is available at https://wandb.ai/authorize.
 
@@ -64,9 +64,9 @@ Otherwise, launch Claude Code from any folder:
 claude
 ```
 
-Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single project. To stop tracing, run `forge-claude-code uninstall`.
+Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single Claude Code project. To stop tracing, run `forge-claude-code uninstall`.
 
-Open your project in CoreWeave Forge AgentLens to see them.
+Open your Forge project in CoreWeave Forge AgentLens to see them.
 
 ---
 
@@ -102,7 +102,7 @@ forge-claude-code config show
 # Read a single setting (resolves env-var overrides)
 forge-claude-code config get project
 
-# Set the W&B project that receives traces
+# Set your Forge project
 forge-claude-code config set project my-entity/my-project
 
 # Set your W&B API key

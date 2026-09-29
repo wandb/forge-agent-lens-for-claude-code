@@ -182,7 +182,7 @@ async function cmdInstall(
     }
   } else if (process.stdin.isTTY) {
     if (!effectiveProject) {
-      const answer = await prompt('\nW&B project for traces (ENTITY/PROJECT): ');
+      const answer = await prompt('\nForge project (ENTITY/PROJECT): ');
       const value = answer.trim();
       if (value) {
         if (!value.includes('/')) {
