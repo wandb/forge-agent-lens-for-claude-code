@@ -38,6 +38,8 @@ function spanCloseTime(): Date {
 export type TurnTrace = {
   kind: 'turn';
   span: tracing.Turn;
+  /** Root `gen_ai.agent.name`; stamped on tool spans parented to this turn. */
+  agentName: string;
   promptId?: string;
   userText?: string;
   /** A Stop snapshot is quiescent but remains reopenable because hooks block. */
@@ -337,6 +339,7 @@ export class Session {
     const turn: TurnTrace = {
       kind: 'turn',
       span,
+      agentName: this.agentName,
       promptId: options.promptId,
       userText: cursor.userText,
       phase: 'active',
@@ -436,6 +439,17 @@ export class Session {
     return assistantResponses(parsed).slice(turn.responseOffset, turn.responseLimit);
   }
 
+  /** The last response waits for Stop: Claude Code may write more of it after running a tool. */
+  emitCompletedResponses(turn: TurnTrace): void {
+    const parsed = this.parseTranscript();
+    if (!parsed) return;
+    emitChatSpans(turn.span, this.responsesForTurn(parsed, turn).slice(0, -1), {
+      agentName: this.agentName,
+      seen: turn.seenResponses,
+      userMessage: turn.userText,
+    });
+  }
+
   private recordTurnOutput(
     turn: TurnTrace,
     responses: AssistantResponse[],
@@ -444,6 +458,7 @@ export class Session {
     emitChatSpans(turn.span, responses, {
       agentName: this.agentName,
       seen: turn.seenResponses,
+      userMessage: turn.userText,
     });
 
     const text = responses.flatMap(response => extractAssistantTextBlocks(response.content));

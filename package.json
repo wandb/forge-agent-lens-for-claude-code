@@ -1,6 +1,6 @@
 {
   "name": "forge-claude-code",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "description": "Track Claude Code sessions in Forge AgentLens for observability and debugging",
   "type": "module",
   "bin": {
