@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 // `registerPlugin` with InstallSource.Local must register the marketplace from
 // the npm-installed package on disk (no git clone), so CI/sandbox environments
@@ -15,7 +15,7 @@ import * as path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { MARKETPLACE_NAME } from '../src/setup.ts';
+import { MARKETPLACE_NAME, MARKETPLACE_REPO } from '../src/setup.ts';
 import { readFakeCalls } from './helpers.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -23,7 +23,7 @@ const REPO_ROOT = path.resolve(HERE, '..');
 const FAKE_CLAUDE_BIN_DIR = path.join(HERE, 'fixtures', 'fake-claude-bin');
 
 function seedLocalPluginTree(npmPrefix: string): string {
-  const pkgDir = path.join(npmPrefix, 'lib', 'node_modules', 'weave-claude-code');
+  const pkgDir = path.join(npmPrefix, 'lib', 'node_modules', '@coreweave', 'forge-claude-code');
   fs.mkdirSync(path.join(pkgDir, '.claude-plugin'), { recursive: true });
   fs.writeFileSync(
     path.join(pkgDir, '.claude-plugin', 'marketplace.json'),
@@ -75,7 +75,7 @@ suite('install --source=local', () => {
 
     assert.equal(findLocalPluginPath(), null, 'no install: expected null');
 
-    const dir = path.join(tmpNpmPrefix, 'lib', 'node_modules', 'weave-claude-code');
+    const dir = path.join(tmpNpmPrefix, 'lib', 'node_modules', '@coreweave', 'forge-claude-code');
     fs.mkdirSync(dir, { recursive: true });
     assert.equal(findLocalPluginPath(), null, 'dir without marketplace.json: expected null');
 
@@ -101,7 +101,7 @@ suite('install --source=local', () => {
     const addCall = calls.find((c) => c.startsWith('plugin marketplace add'));
     assert.ok(addCall, 'expected plugin marketplace add to be called');
     assert.ok(addCall.includes(pkgDir), `expected local path ${pkgDir} in: ${addCall}`);
-    assert.ok(!addCall.includes('wandb/weave-claude-code#'), `expected no github source in: ${addCall}`);
+    assert.ok(!addCall.includes(`${MARKETPLACE_REPO}#`), `expected no github source in: ${addCall}`);
     assert.ok(calls.some((c) => c.startsWith('plugin install')));
     assert.ok(!calls.some((c) => c.startsWith('plugin update')));
     assert.equal(result.pluginUpdated, false);
@@ -112,7 +112,7 @@ suite('install --source=local', () => {
 
     assert.throws(
       () => registerPlugin(path.join(tmpHome, 'log.txt'), InstallSource.Local),
-      /npm install -g weave-claude-code/,
+      /npm install -g @coreweave\/forge-claude-code/,
     );
   });
 
@@ -122,7 +122,11 @@ suite('install --source=local', () => {
       fs.cpSync(path.join(REPO_ROOT, entry), path.join(pkgDir, entry), { recursive: true });
     }
     const manifestPath = path.join(pkgDir, '.claude-plugin', 'marketplace.json');
-    const repoManifest = fs.readFileSync(manifestPath, 'utf8');
+    // Exercise the original regression even when the checked-in source is already local.
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.plugins[0].source = { source: 'github', repo: MARKETPLACE_REPO, ref: 'v0.2.15', sha: 'abc123' };
+    const repoManifest = `${JSON.stringify(manifest, null, 2)}\n`;
+    fs.writeFileSync(manifestPath, repoManifest);
 
     const pack = spawnSync('npm', ['pack', '--pack-destination', pkgDir], { cwd: pkgDir, encoding: 'utf8' });
     assert.equal(pack.status, 0, pack.stderr);
@@ -151,7 +155,11 @@ suite('install --source=local', () => {
     fs.cpSync(path.join(REPO_ROOT, '.claude-plugin'), path.join(pkgDir, '.claude-plugin'), { recursive: true });
     fs.cpSync(path.join(REPO_ROOT, 'scripts'), path.join(pkgDir, 'scripts'), { recursive: true });
     const manifestPath = path.join(pkgDir, '.claude-plugin', 'marketplace.json');
-    const repoManifest = fs.readFileSync(manifestPath, 'utf8');
+    // Exercise the original regression even when the checked-in source is already local.
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.plugins[0].source = { source: 'github', repo: MARKETPLACE_REPO, ref: 'v0.2.15', sha: 'abc123' };
+    const repoManifest = `${JSON.stringify(manifest, null, 2)}\n`;
+    fs.writeFileSync(manifestPath, repoManifest);
     const script = path.join(pkgDir, 'scripts', 'build', 'pack-marketplace.mjs');
 
     // prepack, crash, then a full prepack/postpack cycle.

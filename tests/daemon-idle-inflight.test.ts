@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 // Active root or tool work pins the daemon across its idle window. A blockable
 // Stop keeps its root reopenable but makes it quiescent when no call is open.
@@ -31,7 +31,7 @@ function writeTranscript(home: string, sessionId: string): string {
 }
 
 test('daemon stays up past the inactivity timeout while a turn span is open', async () => {
-  const d = await startTestDaemon({ env: { WEAVE_INACTIVITY_MS: '1000' } });
+  const d = await startTestDaemon({ env: { FORGE_CLAUDE_CODE_INACTIVITY_MS: '1000' } });
   try {
     const sessionId = 'inflight-001';
     const transcript = writeTranscript(d.home, sessionId);
@@ -51,7 +51,7 @@ test('daemon stays up past the inactivity timeout while a turn span is open', as
 });
 
 test('daemon idles out once a stopped turn is quiescent', async () => {
-  const d = await startTestDaemon({ env: { WEAVE_INACTIVITY_MS: '1000' } });
+  const d = await startTestDaemon({ env: { FORGE_CLAUDE_CODE_INACTIVITY_MS: '1000' } });
   try {
     const sessionId = 'inflight-002';
     const transcript = writeTranscript(d.home, sessionId);
@@ -69,7 +69,7 @@ test('daemon idles out once a stopped turn is quiescent', async () => {
 });
 
 test('an open tool keeps a stopped turn alive', async () => {
-  const d = await startTestDaemon({ env: { WEAVE_INACTIVITY_MS: '1000' } });
+  const d = await startTestDaemon({ env: { FORGE_CLAUDE_CODE_INACTIVITY_MS: '1000' } });
   try {
     const sessionId = 'inflight-tool';
     const transcript = writeTranscript(d.home, sessionId);

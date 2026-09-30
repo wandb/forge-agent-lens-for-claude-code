@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803  # v6
         with:
           ref: ${{ github.event.inputs.release_ref }}
           fetch-depth: 0
@@ -39,6 +39,7 @@ jobs:
             exit 1
           fi
 
+          PACKAGE_NAME="$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).name")"
           PACKAGE_VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")"
 
           if [ "${RELEASE_REF}" != "v${PACKAGE_VERSION}" ]; then
@@ -46,13 +47,13 @@ jobs:
             exit 1
           fi
 
-          if npm view "weave-claude-code@${PACKAGE_VERSION}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
-            echo "::error::Version ${PACKAGE_VERSION} is already published to npm"
+          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "::error::Version ${PACKAGE_VERSION} of ${PACKAGE_NAME} is already published to npm"
             exit 1
           fi
 
       - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version-file: package.json
           registry-url: https://registry.npmjs.org

@@ -48,10 +48,6 @@ updateJsonFile('.claude-plugin/marketplace.json', (data) => {
   }
 
   data.plugins[0].version = nextVersion;
-  if (!data.plugins[0].source || typeof data.plugins[0].source !== 'object') {
-    throw new Error('.claude-plugin/marketplace.json is missing plugins[0].source');
-  }
-  data.plugins[0].source.ref = `v${nextVersion}`;
   return data;
 });
 

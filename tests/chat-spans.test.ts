@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -67,8 +67,8 @@ test('emits each normalized response once without regrouping its content', () =>
         { type: 'text', content: 'editing' },
         {
           type: 'tool_call',
-          toolCallId: 'tool-1',
-          toolName: 'Edit',
+          id: 'tool-1',
+          name: 'Edit',
           arguments: '{"file_path":"/x"}',
         },
       ],

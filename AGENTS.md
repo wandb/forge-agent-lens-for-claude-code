@@ -48,16 +48,21 @@ Three request-shape traps that produce believable but wrong conclusions:
   (`gen_ai.tool.call.arguments.command`). Do not infer the wire format from a
   flattened view.
 
+Span names carry their target (`invoke_agent claude-code`, `execute_tool Bash`,
+`chat <model>`), so select spans by `operation_name`, not `span_name`.
+
+Here `tracing` is imported from `@coreweave/forge-sdk/agentlens/tracing`.
+
 For an end-to-end check, drive the real `Daemon` with the real OTLP exporter
-(`weave.init(project)` with no span-processor override), route synthetic hook
-events through `routeEvent`, `await weave.flushOTel()`, then read the spans back
+(`tracing.init(project)` with no span-processor override), route synthetic hook
+events through `routeEvent`, `await tracing.forceFlush()`, then read the spans back
 with the query above. `tests/helpers.ts` has the in-memory equivalent for unit
 tests.
 
 Export failures are invisible by default: a bad key or an unwritable project
 drops every span while hooks keep succeeding and the log rotates. Before trusting
 an empty project, grep the daemon log for `OTLPExporterError`. Surfacing the last
-rejection through `weave-claude-code status` is in flight on
+rejection through `forge-claude-code status` is in flight on
 `feat/status-export-health`.
 
 ## Transcript lifecycle
@@ -76,7 +81,7 @@ the first prompt of every new session went untraced.
 `resolveApiKey` and `resolveProject` in `src/config.ts` prefer the environment
 over `settings.json`. A revoked key in `settings.json` therefore stays hidden as
 long as `WANDB_API_KEY` is exported, and only surfaces for anything launched
-without it. `weave-claude-code status` prints which source won.
+without it. `forge-claude-code status` prints which source won.
 
 The daemon inherits the environment of whatever spawned it, so a daemon started
 from a shell without `WANDB_API_KEY` resolves a different key than your terminal

@@ -1,22 +1,23 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
-// Attribute-key constants and formatting helpers typed against the `weave` SDK.
+// Attribute-key constants and formatting helpers typed against the Forge SDK.
 
 import type { Attributes } from '@opentelemetry/api';
-import type { MessagePart, SubAgent, Tool, Turn, Usage } from 'weave';
+import type { MessagePart, SubAgent, Tool, Turn, Usage } from '@coreweave/forge-sdk/agentlens/tracing';
 import { isTextBlock, isThinkingBlock, isRedactedThinkingBlock, isToolUseBlock } from './parser.js';
 import type { UsageSummary } from './parser.js';
 
-/** Weave's two public invoke-agent handles that can own chat, tool, and
+/** Forge's two public invoke-agent handles that can own chat, tool, and
  * subagent spans. The SDK does not currently export a common parent type. */
 export type SpanParent = Turn | SubAgent;
 
 // Attribute keys: `gen_ai.*` from the OTel GenAI semconv
-// (https://github.com/open-telemetry/semantic-conventions-genai); `weave.*`
-// are Claude-Code-specific extensions the backend routes into its queryable
-// custom-attribute maps (compaction keys get dedicated columns).
+// (https://github.com/open-telemetry/semantic-conventions-genai); `forge.*`
+// are this integration's extensions, which the backend routes into its
+// queryable custom-attribute maps. The remaining `weave.*` keys belong to the
+// Weave backend: `weave.compaction.*` has dedicated columns.
 
 export const ATTR = {
   // GenAI semconv - classification
@@ -46,42 +47,43 @@ export const ATTR = {
   // GenAI semconv - errors
   ERROR_TYPE: 'error.type',
 
-  // Weave extensions - claude_code per-turn metadata
-  WEAVE_CWD: 'weave.claude_code.cwd',
-  WEAVE_SOURCE: 'weave.claude_code.source',
-  WEAVE_PLUGIN_VERSION: 'weave.claude_code.plugin.version',
-  WEAVE_ORPHAN_REASON: 'weave.claude_code.orphan_reason',
+  // Forge extensions - claude_code per-turn metadata
+  FORGE_CWD: 'forge.claude_code.cwd',
+  FORGE_SOURCE: 'forge.claude_code.source',
+  FORGE_PLUGIN_VERSION: 'forge.claude_code.plugin.version',
+  FORGE_ORPHAN_REASON: 'forge.claude_code.orphan_reason',
 
-  // Integration identity: unlike gen_ai.agent.name, not user-overridable and
-  // never changes per subagent. Set on the conversation; propagated to every span.
-  WEAVE_INTEGRATION_NAME: 'weave.integration.name',
-  WEAVE_INTEGRATION_VERSION: 'weave.integration.version',
+  // Integration identity, named as the Forge SDK's own integrations name it.
+  // Unlike gen_ai.agent.name, not user-overridable and never changes per
+  // subagent. Set on the conversation; propagated to every span.
+  FORGE_INTEGRATION_NAME: 'forge.integration.name',
+  FORGE_INTEGRATION_VERSION: 'forge.integration.version',
 
   // Back-pointer from a subagent's invoke_agent span to the tool_use_id of
   // the Agent call that spawned it (correlation without walking the tree).
-  WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID: 'weave.claude_code.subagent.spawning_tool_call_id',
+  FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID: 'forge.claude_code.subagent.spawning_tool_call_id',
 
-  // Weave Agents backend - compaction
+  // CoreWeave Forge AgentLens backend - compaction
   COMPACTION_SUMMARY: 'weave.compaction.summary',
   COMPACTION_ITEMS_BEFORE: 'weave.compaction.items_before',
   COMPACTION_ITEMS_AFTER: 'weave.compaction.items_after',
 
   // Permission span events
-  EVT_PERMISSION_REQUEST: 'weave.permission_request',
-  EVT_PERMISSION_RESOLVED: 'weave.permission_resolved',
-  EVT_PERMISSION_APPROVED: 'weave.permission.approved',
-  EVT_PERMISSION_SUGGESTIONS: 'weave.permission.suggestions',
+  EVT_PERMISSION_REQUEST: 'forge.permission_request',
+  EVT_PERMISSION_RESOLVED: 'forge.permission_resolved',
+  EVT_PERMISSION_APPROVED: 'forge.permission.approved',
+  EVT_PERMISSION_SUGGESTIONS: 'forge.permission.suggestions',
 } as const;
 
 /** Top-level `gen_ai.agent.name` fallback; users override via settings
- *  `agent_name` / `WEAVE_AGENT_NAME`. */
+ *  `agent_name` / `FORGE_CLAUDE_CODE_AGENT_NAME`. */
 export const DEFAULT_AGENT_NAME = 'claude-code';
 
-const INTEGRATION_NAME = 'weave-claude-code';
+const INTEGRATION_NAME = 'forge-claude-code';
 
 /** Free-form integration metadata prefix: new fields (e.g.
  *  `claude_code_app_version`) need no new attribute constant. */
-const WEAVE_INTEGRATION_META_PREFIX = 'weave.integration.meta.';
+const FORGE_INTEGRATION_META_PREFIX = 'forge.integration.meta.';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -121,18 +123,18 @@ export function parseTimestamp(ts: string | undefined): Date | undefined {
 }
 
 /** Per-session integration attributes; `meta` flattens to
- *  `weave.integration.meta.<key>` (falsy values skipped). */
+ *  `forge.integration.meta.<key>` (falsy values skipped). */
 export function buildIntegrationAttrs(args: {
   version: string;
   meta?: Record<string, string | undefined>;
 }): Attributes {
   const attrs: Attributes = {
-    [ATTR.WEAVE_INTEGRATION_NAME]: INTEGRATION_NAME,
-    [ATTR.WEAVE_INTEGRATION_VERSION]: args.version,
+    [ATTR.FORGE_INTEGRATION_NAME]: INTEGRATION_NAME,
+    [ATTR.FORGE_INTEGRATION_VERSION]: args.version,
   };
   if (args.meta) {
     for (const [key, value] of Object.entries(args.meta)) {
-      if (value) attrs[`${WEAVE_INTEGRATION_META_PREFIX}${key}`] = value;
+      if (value) attrs[`${FORGE_INTEGRATION_META_PREFIX}${key}`] = value;
     }
   }
   return attrs;
@@ -153,8 +155,8 @@ export function contentBlocksToParts(blocks: unknown[]): MessagePart[] {
     } else if (isToolUseBlock(block)) {
       parts.push({
         type: 'tool_call',
-        toolCallId: block.id,
-        toolName: block.name,
+        id: block.id,
+        name: block.name,
         arguments: jsonStr(block.input),
       });
     }
@@ -162,7 +164,7 @@ export function contentBlocksToParts(blocks: unknown[]): MessagePart[] {
   return parts;
 }
 
-/** Anthropic usage → `weave.Usage`. OTel inputTokens is the TOTAL prompt, so sum
+/** Anthropic usage → `Usage`. OTel inputTokens is the TOTAL prompt, so sum
  *  Anthropic's three disjoint fields (uncached + cache_read + cache_creation).
  *  https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/anthropic.md */
 export function buildUsage(usage: UsageSummary, reasoningTokens?: number): Usage {

@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import {
   ATTR, MEMBER, TEAM, assert, assistantEntry, childrenOf, coordinator, dispatch,
-  flushWeave, fs, initWeaveInMemory, isTeammateTurn, makeGenaiDaemon,
+  flushForge, fs, initForgeInMemory, isTeammateTurn, makeGenaiDaemon,
   makeTranscript, postDispatch, preDispatch, spanParentId, teammateEntries, test,
   userEntry, writeMetadata,
 } from './agent-team-test-helpers.ts';
@@ -65,17 +65,17 @@ test('same-name respawns consume distinct transcripts and duplicate idle is idem
     transcript_path: secondTeammateSession.file,
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agents = spans.filter(span =>
     ['team-call-1', 'team-call-2'].includes(
-      String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]),
+      String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]),
     ));
   assert.equal(agents.length, 2);
   assert.deepEqual(
     Object.fromEntries(agents.map(span => [
-      span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
+      span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
       span.attributes[ATTR.OUTPUT_MESSAGES],
     ])),
     {
@@ -103,7 +103,7 @@ test('same-name respawns consume distinct transcripts and duplicate idle is idem
 });
 
 test('same-session agent-setting lifecycle waits for TeammateIdle', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'team-same-session';
   const transcript = makeTranscript(t, sid, 'same-session');
@@ -143,7 +143,7 @@ test('same-session agent-setting lifecycle waits for TeammateIdle', async (t) =>
     transcript_path: transcript.file, team_name: TEAM, teammate_name: MEMBER,
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span => span.attributes[ATTR.AGENT_ID] === agentId);
@@ -174,11 +174,11 @@ test('current generic named Agent payload is traced as an implicit-team dispatch
     transcript_path: teammate.file, team_name: TEAM, teammate_name: MEMBER,
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'implicit-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.AGENT_NAME], MEMBER);
   assert.equal(agent.attributes[ATTR.OUTPUT_MESSAGES], JSON.stringify([
@@ -210,13 +210,13 @@ test('a tentative named Agent failure still accepts its ordinary Stop transcript
     agent_id: agentId, agent_type: 'general-purpose', agent_transcript_path: subPath,
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-failed-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'ordinary-failed-call');
   assert.equal(agents.length, 1);
   assert.equal(agents[0].attributes[ATTR.ERROR_TYPE], 'AgentError');
-  assert.equal(agents[0].attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agents[0].attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-failed-msg'));
 });
@@ -235,18 +235,18 @@ test('agent-setting without a team remains an ordinary recovered lifecycle', asy
     agent_id: agentId, agent_type: 'general-purpose', agent_transcript_path: subPath,
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.AGENT_ID] === agentId);
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-setting-msg'));
 });
 
 test('an ordinary child inside a teammate session remains an ordinary Agent', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'teammate-with-child';
   const daemon = makeGenaiDaemon();
@@ -284,12 +284,12 @@ test('an ordinary child inside a teammate session remains an ordinary Agent', as
     agent_id: agentId, agent_type: 'general-purpose', agent_transcript_path: subPath,
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.AGENT_ID] === agentId);
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'ordinary-team-child-msg'));
 });
@@ -321,11 +321,11 @@ test('name-only Team alias remains the display name when lifecycle type differs'
     transcript_path: transcript.file, team_name: TEAM, teammate_name: 'instance-alias',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'alias-type-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'alias-type-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.AGENT_NAME], 'instance-alias');
   assert.equal(agent.attributes[ATTR.AGENT_ID], agentId);
@@ -333,7 +333,7 @@ test('name-only Team alias remains the display name when lifecycle type differs'
 });
 
 test('restart-first name-only Team learns lifecycle type and completes on idle', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'team-restart-name-only';
   const agentId = 'restart-name-only-agent';
@@ -368,11 +368,11 @@ test('restart-first name-only Team learns lifecycle type and completes on idle',
     transcript_path: transcript.file, team_name: TEAM, teammate_name: 'instance-alias',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agent = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-name-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-name-call');
   assert.ok(agent);
   assert.equal(agent.attributes[ATTR.AGENT_NAME], 'instance-alias');
   assert.equal(agent.attributes[ATTR.AGENT_ID], agentId);
@@ -443,12 +443,12 @@ test('completed Team alias suppresses a delayed lifecycle with its recorded type
     agent_transcript_path: delayedPath,
   });
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.some(span => span.attributes[ATTR.AGENT_ID] === delayedAgentId), false);
   assert.equal(spans.filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]
       === 'delayed-alias-call').length, 1);
   assert.equal(spans.filter(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'delayed-alias-msg').length, 1);
@@ -473,11 +473,11 @@ test('PermissionDenied closes an explicit Team and its deferred root once', asyn
     tool_use_id: 'denied-team-call', tool_name: 'Agent',
     tool_input: input, reason: 'auto mode denied',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const agents = spans.filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-team-call');
   const roots = spans.filter(span =>
     span.attributes[ATTR.AGENT_NAME] === 'claude-code');
   assert.equal(agents.length, 1);

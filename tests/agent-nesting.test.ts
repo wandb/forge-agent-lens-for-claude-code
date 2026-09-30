@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ATTR } from '../src/genaiSpans.ts';
 import {
   assistantEntry,
-  initWeaveInMemory,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -64,7 +64,7 @@ test('nested Agent call stays inside its owning subagent', async (t) => {
 });
 
 test('a nested Agent result cannot claim a matching root recovery', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-owner-scoped-recovery';
   const rootAgentId = 'root-reviewer';
@@ -109,20 +109,20 @@ test('a nested Agent result cannot claim a matching root recovery', async (t) =>
   const rootAgent = spans.find(span => span.attributes[ATTR.AGENT_ID] === rootAgentId);
   const owner = spans.find(span => span.attributes[ATTR.AGENT_ID] === ownerAgentId);
   const nested = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-agent-result');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'nested-agent-result');
   assert.ok(rootAgent && owner && nested);
   assert.equal(spanParentId(nested), owner.spanContext().spanId);
-  assert.equal(rootAgent.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID], undefined);
+  assert.equal(rootAgent.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID], undefined);
   assert.equal(
     nested.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([{ role: 'assistant', content: 'nested result' }]),
   );
   assert.equal(spans.some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'unowned-agent-result'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'unowned-agent-result'), false);
 });
 
 test('unknown agent_id is rejected instead of flattened under the turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'sub-unknown';
   const transcript = makeTranscript(t, sid, 'sub-unknown');
@@ -142,7 +142,7 @@ test('unknown agent_id is rejected instead of flattened under the turn', async (
 
 for (const firstHook of ['PreToolUse', 'PostToolUse'] as const) {
   test(`restart-first nested ${firstHook} reconstructs the owning Agent`, async (t) => {
-    const exporter = await initWeaveInMemory();
+    const exporter = await initForgeInMemory();
     exporter.reset();
     const sid = `nested-restart-${firstHook}`;
     const agentId = `owner-${firstHook}`;
@@ -191,7 +191,7 @@ for (const firstHook of ['PreToolUse', 'PostToolUse'] as const) {
 }
 
 test('restart-first nested terminal hook without agent_type stays fail-closed', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'nested-restart-no-type';
   const transcript = makeTranscript(t, sid, sid);

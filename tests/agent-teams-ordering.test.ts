@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import {
-  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushWeave, fs,
-  initWeaveInMemory, isTeammateTurn, makeGenaiDaemon, makeTranscript, postDispatch,
+  ATTR, MEMBER, TEAM, assert, assistantEntry, coordinator, dispatch, flushForge, fs,
+  initForgeInMemory, isTeammateTurn, makeGenaiDaemon, makeTranscript, postDispatch,
   preDispatch, startQueueBlocker, teammateEntries, test, userEntry, writeMetadata,
 } from './agent-team-test-helpers.ts';
 
 test('restart-first receipt stages metadata before queued reconstruction', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const sid = 'team-restart-receipt-owner';
@@ -38,12 +38,12 @@ test('restart-first receipt stages metadata before queued reconstruction', async
 
   await Promise.all([blocking, post, idle]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-receipt-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-receipt-call');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(
     agent.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([{ role: 'assistant', content: 'restart result' }]),
@@ -51,7 +51,7 @@ test('restart-first receipt stages metadata before queued reconstruction', async
 });
 
 test('queued duplicate SessionStart paths preserve the first owner root', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const sid = 'team-conflicting-start-owner';
@@ -93,10 +93,10 @@ test('queued duplicate SessionStart paths preserve the first owner root', async 
 
   await Promise.all([blocking, ...queued]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'conflicting-start-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'conflicting-start-call');
   assert.ok(agent);
   assert.equal(
     agent.attributes[ATTR.OUTPUT_MESSAGES],
@@ -124,16 +124,16 @@ test('an idle older than a later normal Pre cannot consume that future dispatch'
     hook_event_name: 'PostToolUse', session_id: sid, tool_use_id: 'later-call',
     tool_name: 'Agent', tool_input: input, tool_response: 'dispatched',
   }, 3);
-  await flushWeave();
+  await flushForge();
   assert.equal(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'stale-msg'), false);
 
   await daemon.drain('SIGTERM');
-  await flushWeave();
+  await flushForge();
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'later-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'later-call');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], 'daemon_shutdown');
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], 'daemon_shutdown');
 });
 
 test('restart-first Agent Post registers its dispatch and consumes an earlier idle', async (t) => {
@@ -151,12 +151,12 @@ test('restart-first Agent Post registers its dispatch and consumes an earlier id
     tool_response: 'dispatched',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-team-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'restart-team-call');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(agent.attributes[ATTR.OUTPUT_MESSAGES], JSON.stringify([
     { role: 'assistant', content: 'restart result' },
   ]));
@@ -180,14 +180,14 @@ test('partial teammate transcript retries without consuming the dispatch', async
   };
 
   await daemon.routeEvent(idle);
-  await flushWeave();
+  await flushForge();
   assert.equal(exporter.getFinishedSpans().some(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'partial-team-call'), false);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'partial-team-call'), false);
 
   fs.appendFileSync(teammate.file, `${assistant.slice(split)}\n`);
   await daemon.routeEvent(idle);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'partial-msg'));
 });
@@ -223,11 +223,11 @@ test('concurrent idle and duplicate Post emit one teammate response', async (t) 
     finishWrite,
   ]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.filter(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'concurrent-team-call').length, 1);
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'concurrent-team-call').length, 1);
   assert.equal(spans.filter(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'concurrent-team-msg').length, 1);
   assert.equal(spans.filter(span => isTeammateTurn(span)).length, 1);
@@ -258,12 +258,12 @@ test('a complete idle queued behind a partial idle is reconsidered automatically
     }),
   ]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'concurrent-idles-call');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'concurrent-idles-call');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.ok(exporter.getFinishedSpans().some(span =>
     span.attributes[ATTR.RESPONSE_ID] === 'complete-idle-msg'));
 });
@@ -303,13 +303,13 @@ test('cross-session idles commit in global receipt order', async (t) => {
   }, 25));
   await Promise.all([firstIdle, secondIdle]);
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
-    String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
+    String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
       .startsWith('ordered-team-call-'));
   assert.deepEqual(Object.fromEntries(agents.map(agent => [
-    agent.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
+    agent.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID],
     agent.attributes[ATTR.OUTPUT_MESSAGES],
   ])), {
     'ordered-team-call-1': JSON.stringify([{ role: 'assistant', content: 'first result' }]),
@@ -318,7 +318,7 @@ test('cross-session idles commit in global receipt order', async (t) => {
 });
 
 test('removing an ordinary candidate re-evaluates a buffered ambiguous idle', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const teamOwner = makeTranscript(t, 'reconcile-team-owner', 'reconcile-team-owner');
@@ -376,21 +376,21 @@ test('removing an ordinary candidate re-evaluates a buffered ambiguous idle', as
   await daemon.routeEvent({
     hook_event_name: 'SessionEnd', session_id: 'reconcile-ordinary-owner', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.ok(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'reconcile-team-msg'));
   assert.ok(spans.some(span => span.attributes[ATTR.RESPONSE_ID] === 'reconcile-ordinary-msg'));
   for (const toolUseId of ['reconcile-team-call', 'reconcile-ordinary-call']) {
     const agent = spans.find(span =>
-      span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === toolUseId);
+      span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === toolUseId);
     assert.ok(agent);
-    assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+    assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   }
 });
 
 test('one disambiguation drains every ready buffered idle', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const daemon = makeGenaiDaemon();
   const teamOwner = makeTranscript(t, 'batch-team-owner', 'batch-team-owner');
@@ -451,12 +451,12 @@ test('one disambiguation drains every ready buffered idle', async (t) => {
   await daemon.routeEvent({
     hook_event_name: 'SessionEnd', session_id: 'batch-blocker-owner', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.filter(span =>
     String(span.attributes[ATTR.RESPONSE_ID]).startsWith('batch-team-msg-')).length, 9);
   assert.equal(spans.filter(span =>
-    String(span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
+    String(span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID])
       .startsWith('batch-team-call-')).length, 9);
 });

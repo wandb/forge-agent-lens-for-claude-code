@@ -1,5 +1,5 @@
 {
-  "name": "weave",
+  "name": "forge",
   "version": "0.2.15",
-  "description": "Track Claude Code sessions in Weave for observability and debugging"
+  "description": "Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging"
 }

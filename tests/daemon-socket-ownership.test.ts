@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,7 +22,7 @@ type DaemonInternals = {
 
 function makeDaemon(socketPath: string, dir: string): DaemonInternals {
   return new Daemon(socketPath, path.join(dir, 'daemon.log'), {
-    weaveProject: null,
+    project: null,
     apiKey: null,
     baseUrl: 'https://x',
     agentName: 'claude-code',

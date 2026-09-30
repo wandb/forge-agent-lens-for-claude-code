@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import { test, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,8 +10,8 @@ import { TeamCoordinator } from '../src/teamCoordinator.ts';
 import {
   assistantEntry,
   childrenOf,
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -26,8 +26,8 @@ export {
   TeamCoordinator,
   assistantEntry,
   childrenOf,
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -67,7 +67,7 @@ export async function coordinator(
   label: string,
   promptId?: string,
 ) {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = `team-${label}`;
   const transcript = makeTranscript(t, sid, label);

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
-import type { SubAgent, Tool } from 'weave';
+import type { SubAgent, Tool } from '@coreweave/forge-sdk/agentlens/tracing';
 import {
   ATTR,
   addPermissionRequestEvent,
@@ -132,7 +132,7 @@ export function beginCall(
     const agentType = agentTypeFor(args.input);
     const prompt = typeof args.input['prompt'] === 'string' ? args.input['prompt'] : '';
     const span = startAgentSpan(parent.span, agentType, prompt);
-    span.setAttributes({ [ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]: args.toolUseId });
+    span.setAttributes({ [ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]: args.toolUseId });
     call = {
       kind: 'agent',
       span,
@@ -400,7 +400,7 @@ function endAgent(call: TracedAgent, completion: AgentCompletion): void {
     );
     return;
   }
-  call.span.setAttributes({ [ATTR.WEAVE_ORPHAN_REASON]: completion.orphanReason });
+  call.span.setAttributes({ [ATTR.FORGE_ORPHAN_REASON]: completion.orphanReason });
   call.span.end({
     error: new Error(`call did not complete (${completion.orphanReason})`),
     ...(completion.endTime ? { endTime: completion.endTime } : {}),
@@ -473,7 +473,7 @@ export function bindAgentToolUse(
   if (call.toolUseId || state.byToolUseId.has(toolUseId)) return;
   call.toolUseId = toolUseId;
   state.byToolUseId.set(toolUseId, call);
-  call.span.setAttributes({ [ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID]: toolUseId });
+  call.span.setAttributes({ [ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID]: toolUseId });
 }
 
 export function bindAgent(
@@ -571,7 +571,7 @@ export function finalizeOpenCalls(
       if (call.kind === 'agent') {
         endAgent(call, finalCompletion(call, endTime));
       } else {
-        call.span.setAttributes({ [ATTR.WEAVE_ORPHAN_REASON]: reason });
+        call.span.setAttributes({ [ATTR.FORGE_ORPHAN_REASON]: reason });
         call.span.end({
           error: new Error(`call did not complete (${reason})`),
           ...(endTime ? { endTime } : {}),

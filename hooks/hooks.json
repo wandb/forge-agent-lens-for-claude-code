@@ -1,5 +1,5 @@
 {
-  "description": "Forward all Claude Code lifecycle events to the Weave daemon",
+  "description": "Forward all Claude Code lifecycle events to the Forge Claude Code daemon",
   "hooks": {
     "SessionStart": [
       {

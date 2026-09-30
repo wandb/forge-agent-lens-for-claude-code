@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import { test, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,8 +11,8 @@ import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ATTR } from '../src/genaiSpans.ts';
 import { VERSION } from '../src/setup.ts';
 import {
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   spanParentId,
 } from './helpers.ts';
@@ -23,7 +23,7 @@ type Transcript = {
 };
 
 function makeTranscript(t: TestContext, sessionId: string): Transcript {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), '.weave-turn-lifecycle-'));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), '.forge-turn-lifecycle-'));
   const file = path.join(dir, `${sessionId}.jsonl`);
   fs.writeFileSync(file, '');
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -78,7 +78,7 @@ function chats(spans: ReadableSpan[]): ReadableSpan[] {
 }
 
 test('Stop snapshots only new normalized responses and SessionEnd closes the root', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-stop-snapshots';
   const transcript = makeTranscript(t, sessionId);
@@ -100,7 +100,7 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
     usage: { input_tokens: 10, output_tokens: 4, cache_read_input_tokens: 20 },
   }));
   await daemon.routeEvent({ hook_event_name: 'Stop', session_id: sessionId });
-  await flushWeave();
+  await flushForge();
 
   assert.equal(turns(exporter.getFinishedSpans()).length, 0, 'blockable Stop retains the root');
   assert.deepEqual(chats(exporter.getFinishedSpans()).map(span => span.attributes[ATTR.RESPONSE_ID]), [
@@ -115,9 +115,13 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
   await daemon.routeEvent({
     hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
+  for (const span of spans) {
+    assert.equal(span.attributes[ATTR.FORGE_INTEGRATION_NAME], 'forge-claude-code');
+    assert.equal(span.resource.attributes['wandb.sdk.name'], 'forge');
+  }
   const [turn] = turns(spans);
   const responseSpans = chats(spans);
   assert.ok(turn);
@@ -127,7 +131,7 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
     'response-b',
   ]);
   assert.ok(responseSpans.every(span => spanParentId(span) === turn.spanContext().spanId));
-  assert.equal(turn.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(turn.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(
     turn.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([
@@ -136,14 +140,14 @@ test('Stop snapshots only new normalized responses and SessionEnd closes the roo
     ]),
   );
   assert.deepEqual(turn.attributes[ATTR.RESPONSE_FINISH_REASONS], ['end_turn']);
-  assert.equal(turn.attributes[ATTR.WEAVE_INTEGRATION_NAME], 'weave-claude-code');
-  assert.equal(turn.attributes[ATTR.WEAVE_INTEGRATION_VERSION], VERSION);
-  assert.equal(turn.attributes['weave.integration.meta.claude_code_app_version'], '1.2.3');
+  assert.equal(turn.attributes[ATTR.FORGE_INTEGRATION_NAME], 'forge-claude-code');
+  assert.equal(turn.attributes[ATTR.FORGE_INTEGRATION_VERSION], VERSION);
+  assert.equal(turn.attributes['forge.integration.meta.claude_code_app_version'], '1.2.3');
   assert.equal(responseSpans[0].attributes[ATTR.USAGE_INPUT_TOKENS], 30);
 });
 
 test('the first chat span carries the prompt while Stop retains the root', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-live-prompt';
   const transcript = makeTranscript(t, sessionId);
@@ -162,7 +166,7 @@ test('the first chat span carries the prompt while Stop retains the root', async
     assistantEntry('response-b', 'here', { finishReason: 'end_turn' }),
   );
   await daemon.routeEvent({ hook_event_name: 'Stop', session_id: sessionId });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(turns(spans).length, 0);
@@ -178,7 +182,7 @@ test('the first chat span carries the prompt while Stop retains the root', async
 });
 
 test('a mid-turn transcript user line does not copy the prompt onto a replayed chat span', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-live-prompt-offset-shift';
   const transcript = makeTranscript(t, sessionId);
@@ -199,7 +203,7 @@ test('a mid-turn transcript user line does not copy the prompt onto a replayed c
   );
   await daemon.routeEvent({ hook_event_name: 'Stop', session_id: sessionId });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const withPrompt = chats(exporter.getFinishedSpans())
     .filter(span => span.attributes[ATTR.INPUT_MESSAGES] !== undefined)
@@ -208,7 +212,7 @@ test('a mid-turn transcript user line does not copy the prompt onto a replayed c
 });
 
 test('the prompt skips a first response that has no model', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-live-prompt-no-model';
   const transcript = makeTranscript(t, sessionId);
@@ -225,7 +229,7 @@ test('the prompt skips a first response that has no model', async (t) => {
     assistantEntry('response-b', 'second'),
   );
   await daemon.routeEvent({ hook_event_name: 'Stop', session_id: sessionId });
-  await flushWeave();
+  await flushForge();
 
   assert.deepEqual(
     chats(exporter.getFinishedSpans()).map(span => [span.attributes[ATTR.RESPONSE_ID], span.attributes[ATTR.INPUT_MESSAGES]]),
@@ -255,7 +259,7 @@ function toolResultEntry(toolUseId: string): Record<string, unknown> {
 }
 
 async function startLiveSession(t: TestContext, sessionId: string) {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const transcript = makeTranscript(t, sessionId);
   transcript.append(userEntry('list files'));
@@ -278,7 +282,7 @@ test('a response is sent before Stop once the next response starts a tool', asyn
   await preToolUse('tool-1');
   transcript.append(toolResultEntry('tool-1'), toolUseEntry('response-b', 'tool-2'));
   await preToolUse('tool-2');
-  await flushWeave();
+  await flushForge();
 
   assert.equal(turns(exporter.getFinishedSpans()).length, 0);
   assert.deepEqual(
@@ -288,7 +292,7 @@ test('a response is sent before Stop once the next response starts a tool', asyn
 
   transcript.append(toolResultEntry('tool-2'), assistantEntry('response-c', 'done', { finishReason: 'end_turn' }));
   await daemon.routeEvent({ hook_event_name: 'Stop', session_id: 'live-chat-next-response' });
-  await flushWeave();
+  await flushForge();
   assert.deepEqual(
     chats(exporter.getFinishedSpans()).map(span => span.attributes[ATTR.RESPONSE_ID]),
     ['response-a', 'response-b', 'response-c'],
@@ -304,7 +308,7 @@ test('a response still streaming parallel tool calls is not sent early', async (
   await preToolUse('tool-2');
   transcript.append(toolResultEntry('tool-2'), assistantEntry('response-b', 'done', { finishReason: 'end_turn' }));
   await daemon.routeEvent({ hook_event_name: 'Stop', session_id: 'live-chat-parallel' });
-  await flushWeave();
+  await flushForge();
 
   const [first] = chats(exporter.getFinishedSpans());
   assert.ok(first);
@@ -312,14 +316,14 @@ test('a response still streaming parallel tool calls is not sent early', async (
   assert.equal(first.attributes[ATTR.OUTPUT_MESSAGES], JSON.stringify([{
     role: 'assistant',
     parts: [
-      { type: 'tool_call', toolCallId: 'tool-1', toolName: 'Bash', arguments: '{"command":"ls"}' },
-      { type: 'tool_call', toolCallId: 'tool-2', toolName: 'Bash', arguments: '{"command":"ls"}' },
+      { type: 'tool_call', id: 'tool-1', name: 'Bash', arguments: '{"command":"ls"}' },
+      { type: 'tool_call', id: 'tool-2', name: 'Bash', arguments: '{"command":"ls"}' },
     ],
   }]));
 });
 
 test('a newer prompt closes an interrupted root without replaying its response', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-interrupted';
   const transcript = makeTranscript(t, sessionId);
@@ -339,7 +343,7 @@ test('a newer prompt closes an interrupted root without replaying its response',
   transcript.append(userEntry('third'));
   await daemon.routeEvent({ hook_event_name: 'UserPromptSubmit', session_id: sessionId, prompt: 'third' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(spans.filter(span => span.attributes[ATTR.RESPONSE_ID] === 'only-once').length, 1);
@@ -348,12 +352,12 @@ test('a newer prompt closes an interrupted root without replaying its response',
   const first = rootSpans.find(span => String(span.attributes[ATTR.INPUT_MESSAGES]).includes('first'));
   const second = rootSpans.find(span => String(span.attributes[ATTR.INPUT_MESSAGES]).includes('second'));
   assert.ok(first && second);
-  assert.equal(first.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
-  assert.equal(second.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(first.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(second.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
 });
 
 test('an identical prompt submitted during transcript lag does not replay prior output', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-repeated-prompt-race';
   const transcript = makeTranscript(t, sessionId);
@@ -381,7 +385,7 @@ test('an identical prompt submitted during transcript lag does not replay prior 
   await daemon.routeEvent({
     hook_event_name: 'Stop', session_id: sessionId, prompt_id: 'prompt-b',
   });
-  await flushWeave();
+  await flushForge();
 
   const laggingSpans = exporter.getFinishedSpans();
   assert.equal(turns(laggingSpans).length, 1, 'only the completed first root exports during lag');
@@ -402,7 +406,7 @@ test('an identical prompt submitted during transcript lag does not replay prior 
     hook_event_name: 'SessionEnd', session_id: sessionId,
     prompt_id: 'prompt-b', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(turns(spans).length, 2);
@@ -413,7 +417,7 @@ test('an identical prompt submitted during transcript lag does not replay prior 
 });
 
 test('duplicate prompt_id is idempotent', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-prompt-id';
   const transcript = makeTranscript(t, sessionId);
@@ -434,13 +438,13 @@ test('duplicate prompt_id is idempotent', async (t) => {
     hook_event_name: 'SessionEnd', session_id: sessionId,
     prompt_id: 'prompt-1', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   assert.equal(turns(exporter.getFinishedSpans()).length, 1);
 });
 
 test('an out-of-order Stop does not replace the foreground prompt', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-out-of-order-stop';
   const transcript = makeTranscript(t, sessionId);
@@ -465,16 +469,16 @@ test('an out-of-order Stop does not replace the foreground prompt', async (t) =>
     prompt_id: 'next-id', prompt: 'next',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const foreground = turns(exporter.getFinishedSpans()).find(span =>
     String(span.attributes[ATTR.INPUT_MESSAGES]).includes('foreground'));
   assert.ok(foreground);
-  assert.equal(foreground.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(foreground.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
 });
 
 test('SessionEnd alone reconstructs the final turn, including its input', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-session-end-restart';
   const transcript = makeTranscript(t, sessionId);
@@ -492,7 +496,7 @@ test('SessionEnd alone reconstructs the final turn, including its input', async 
     prompt_id: 'final-prompt', transcript_path: transcript.file,
     cwd: '/x', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const [turn] = turns(spans);
@@ -506,7 +510,7 @@ test('SessionEnd alone reconstructs the final turn, including its input', async 
 });
 
 test('shutdown does not synthesize a historical turn for an idle resumed session', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-idle-resume-shutdown';
   const transcript = makeTranscript(t, sessionId);
@@ -521,7 +525,7 @@ test('shutdown does not synthesize a historical turn for an idle resumed session
     transcript_path: transcript.file, source: 'resume', cwd: '/x',
   });
   await daemon.drain('test shutdown');
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(turns(spans).length, 0);
@@ -529,7 +533,7 @@ test('shutdown does not synthesize a historical turn for an idle resumed session
 });
 
 test('restart-first Stop does not claim another transcript prompt', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-stop-restart';
   const transcript = makeTranscript(t, sessionId);
@@ -546,7 +550,7 @@ test('restart-first Stop does not claim another transcript prompt', async (t) =>
     transcript_path: transcript.file, cwd: '/x',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(turns(spans).length, 1);
@@ -554,7 +558,7 @@ test('restart-first Stop does not claim another transcript prompt', async (t) =>
 });
 
 test('SessionEnd binds a restart-first root with the same prompt_id', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'root-stop-same-prompt-restart';
   const transcript = makeTranscript(t, sessionId);
@@ -572,7 +576,7 @@ test('SessionEnd binds a restart-first root with the same prompt_id', async (t) 
     hook_event_name: 'SessionEnd', session_id: sessionId, prompt_id: 'prompt-a',
     transcript_path: transcript.file, reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const [turn] = turns(spans);
@@ -586,11 +590,11 @@ test('SessionEnd binds a restart-first root with the same prompt_id', async (t) 
 });
 
 test('a prompt arriving before Claude Code creates the transcript still opens a turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'prompt-before-transcript';
   // Deliberately not created yet: Claude Code writes the file after SessionStart.
-  const dir = fs.mkdtempSync(path.join(os.homedir(), '.weave-turn-lifecycle-'));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), '.forge-turn-lifecycle-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const file = path.join(dir, `${sessionId}.jsonl`);
   const daemon = makeGenaiDaemon();
@@ -610,7 +614,7 @@ test('a prompt arriving before Claude Code creates the transcript still opens a 
   await daemon.routeEvent({
     hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const [turn] = turns(spans);
@@ -623,7 +627,7 @@ test('a prompt arriving before Claude Code creates the transcript still opens a 
 });
 
 test('a delayed prompt-less tool result attaches to its own turn, not the newest', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'delayed-legacy-tool';
   const transcript = makeTranscript(t, sessionId);
@@ -652,7 +656,7 @@ test('a delayed prompt-less tool result attaches to its own turn, not the newest
     tool_name: 'Bash', tool_input: { command: 'ls' }, tool_response: 'ok',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', ...base, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const [toolSpan] = spans.filter(span => span.attributes[ATTR.OPERATION_NAME] === 'execute_tool');

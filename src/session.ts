@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import * as fs from 'fs';
 import * as path from 'path';
 import type { Attributes } from '@opentelemetry/api';
-import * as weave from 'weave';
+import * as tracing from '@coreweave/forge-sdk/agentlens/tracing';
 import { emitChatSpans } from './chatSpans.js';
 import {
   ATTR,
@@ -37,7 +37,7 @@ function spanCloseTime(): Date {
 
 export type TurnTrace = {
   kind: 'turn';
-  span: weave.Turn;
+  span: tracing.Turn;
   /** Root `gen_ai.agent.name`; stamped on tool spans parented to this turn. */
   agentName: string;
   promptId?: string;
@@ -89,7 +89,7 @@ export class Session {
   readonly cwd: string;
   readonly source: string;
   readonly initialRequestModel?: string;
-  readonly conversation: weave.Conversation;
+  readonly conversation: tracing.Conversation;
 
   /** File path → latest loaded contents, preserving first-load order. */
   private readonly systemInstructions = new Map<string, string>();
@@ -117,10 +117,10 @@ export class Session {
       version: VERSION,
       meta: { claude_code_app_version: version },
     });
-    this.conversation = weave.startConversation({
+    this.conversation = tracing.startConversation({
       conversationId,
       agentName: options.agentName,
-      attributes: { ...integrationAttrs, [ATTR.WEAVE_PLUGIN_VERSION]: VERSION },
+      attributes: { ...integrationAttrs, [ATTR.FORGE_PLUGIN_VERSION]: VERSION },
     });
   }
 
@@ -333,8 +333,8 @@ export class Session {
       startTime: cursor.startTime,
     });
     span.setAttributes({
-      [ATTR.WEAVE_CWD]: this.cwd,
-      [ATTR.WEAVE_SOURCE]: this.source,
+      [ATTR.FORGE_CWD]: this.cwd,
+      [ATTR.FORGE_SOURCE]: this.source,
     });
     const turn: TurnTrace = {
       kind: 'turn',
@@ -469,7 +469,7 @@ export class Session {
       .map(response => response.finishReason)
       .filter((reason): reason is string => Boolean(reason));
     if (finishReasons.length) attributes[ATTR.RESPONSE_FINISH_REASONS] = finishReasons;
-    if (options.orphanReason) attributes[ATTR.WEAVE_ORPHAN_REASON] = options.orphanReason;
+    if (options.orphanReason) attributes[ATTR.FORGE_ORPHAN_REASON] = options.orphanReason;
     if (Object.keys(attributes).length) turn.span.setAttributes(attributes);
 
     const model = responses.filter(response => response.model).at(-1)?.model;

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,7 +15,7 @@ import {
 import type { ParsedSession } from '../src/parser.ts';
 
 function parseLines(lines: unknown[]): ParsedSession {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'weave-parser-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-parser-'));
   const file = path.join(dir, 'session.jsonl');
   fs.writeFileSync(file, `${lines.map(line => JSON.stringify(line)).join('\n')}\n`);
   const fd = fs.openSync(file, 'r');
@@ -30,7 +30,7 @@ function parseLines(lines: unknown[]): ParsedSession {
 }
 
 test('rejects a transcript that shrinks below its captured boundary', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'weave-parser-boundary-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-parser-boundary-'));
   const file = path.join(dir, 'session.jsonl');
   fs.writeFileSync(file, `${JSON.stringify({
     type: 'user',

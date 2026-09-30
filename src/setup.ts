@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import * as fs from 'fs';
 import * as os from 'os';
@@ -43,12 +43,10 @@ function failIfError(
 
 export interface Settings {
   log_file: string;
-  weave_project: string | null;
+  project: string | null;
   wandb_api_key: string | null;
-  /** Overrides the name shown in Weave's Agents view (the top-level agent).
-   *  null falls back to `DEFAULT_AGENT_NAME` ('claude-code'). Settings
-   *  written before this field existed read as undefined, which the daemon
-   *  treats identically to null. */
+  /** Overrides the name shown in CoreWeave Forge AgentLens (the top-level agent).
+   *  null falls back to `DEFAULT_AGENT_NAME` ('claude-code'). */
   agent_name: string | null;
   debug: boolean;
   installed_at: string;
@@ -117,24 +115,23 @@ export interface UninstallResult {
   pluginError?: string;
 }
 
-export const CONFIG_DIR = path.join(os.homedir(), '.weave-claude-code');
+export const CONFIG_DIR = path.join(os.homedir(), '.forge-claude-code');
 export const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 
 // Claude Code plugin marketplace coordinates. Pin installs to a release tag so
 // new users never consume whatever happens to be on the default branch at
 // install time.
-export const MARKETPLACE_REPO = 'wandb/weave-claude-code';
+export const MARKETPLACE_REPO = 'wandb/forge-claude-code';
 export const MARKETPLACE_REF = `v${VERSION}`;
 export const MARKETPLACE_SOURCE = `${MARKETPLACE_REPO}#${MARKETPLACE_REF}`;
-export const MARKETPLACE_NAME = 'weave-claude-code';
-export const PLUGIN_NAME = 'weave';
+export const MARKETPLACE_NAME = 'forge-claude-code';
+export const PLUGIN_NAME = 'forge';
 
 // The npm package name shipped to the registry (matches package.json#name).
-// Coincidentally equal to MARKETPLACE_NAME today but a distinct concept: the
-// marketplace name lives in .claude-plugin/marketplace.json, the npm package
-// name lives in package.json. Kept separate so renaming one does not silently
-// break the other.
-const NPM_PACKAGE_NAME = 'weave-claude-code';
+// A distinct concept from MARKETPLACE_NAME: the marketplace name lives in
+// .claude-plugin/marketplace.json, the npm package name lives in package.json.
+// Kept separate so renaming one does not silently break the other.
+export const NPM_PACKAGE_NAME = '@coreweave/forge-claude-code';
 
 /**
  * Create (or recreate) the config directory, log directory, and settings.json.
@@ -154,7 +151,7 @@ export function createConfig(configDir: string): ConfigResult {
 
   const settings: Settings = {
     log_file: logFile,
-    weave_project: null,
+    project: null,
     wandb_api_key: null,
     agent_name: null,
     debug: false,
@@ -170,7 +167,7 @@ export function createConfig(configDir: string): ConfigResult {
 }
 
 /**
- * Locate the npm-installed weave-claude-code package tree, or null if the
+ * Locate the npm-installed forge-claude-code package tree, or null if the
  * package isn't installed globally. Used by `InstallSource.Local` to register
  * the marketplace from disk instead of cloning from GitHub.
  *
@@ -299,9 +296,9 @@ function resolveMarketplaceArg(source: InstallSource, logFile: string): string {
   const localPath = findLocalPluginPath();
   if (!localPath) {
     const msg = [
-      '--source=local requires weave-claude-code to be installed globally via npm,',
-      "but `npm root -g` did not yield a weave-claude-code/.claude-plugin/marketplace.json.",
-      'Run: npm install -g weave-claude-code',
+      `--source=local requires ${NPM_PACKAGE_NAME} to be installed globally via npm,`,
+      `but \`npm root -g\` did not yield a ${NPM_PACKAGE_NAME}/.claude-plugin/marketplace.json.`,
+      `Run: npm install -g ${NPM_PACKAGE_NAME}`,
     ].join('\n');
     appendToLog(logFile, 'ERROR', msg);
     throw new Error(msg);
@@ -319,7 +316,7 @@ export function registerPlugin(
       "'claude' CLI not found in PATH.",
       'Install Claude Code before running this command:',
       '  https://claude.ai/download',
-      'Then re-run: weave-claude-code install',
+      'Then re-run: forge-claude-code install',
     ].join('\n');
     appendToLog(logFile, 'ERROR', msg);
     throw new Error(msg);
@@ -341,7 +338,7 @@ export function registerPlugin(
   const refAfter = readRegisteredMarketplaceRef(MARKETPLACE_NAME);
   // Drift detection compares marketplace refs (version tags). Local sources
   // have no version tag (npm is the version-of-record), so skip the check and
-  // let the user re-run `npm install -g weave-claude-code` to upgrade.
+  // let the user re-run `npm install -g @coreweave/forge-claude-code` to upgrade.
   const refDrifted = source !== InstallSource.Local && refBefore !== null && refBefore !== refAfter;
 
   // Install plugin at user scope
@@ -462,7 +459,7 @@ export function unregisterPlugin(): UninstallResult {
 
 export function loadSettings(): Settings {
   if (!fs.existsSync(SETTINGS_FILE)) {
-    throw new Error(`Settings not found at ${SETTINGS_FILE}\nRun: weave-claude-code install`);
+    throw new Error(`Settings not found at ${SETTINGS_FILE}\nRun: forge-claude-code install`);
   }
   return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) as Settings;
 }

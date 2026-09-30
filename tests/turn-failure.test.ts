@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
-// SPDX-License-Identifier: MIT
-// SPDX-PackageName: weave-claude-code
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-PackageName: forge-claude-code
 
 import { test, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,10 +8,10 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { ATTR } from '../src/genaiSpans.ts';
-import { flushWeave, initWeaveInMemory, makeGenaiDaemon } from './helpers.ts';
+import { flushForge, initForgeInMemory, makeGenaiDaemon } from './helpers.ts';
 
 function transcript(t: TestContext, sessionId: string): string {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), '.weave-stopfailure-'));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), '.forge-stopfailure-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const file = path.join(dir, `${sessionId}.jsonl`);
   fs.writeFileSync(file, JSON.stringify({
@@ -21,7 +21,7 @@ function transcript(t: TestContext, sessionId: string): string {
 }
 
 test('StopFailure marks the turn as failed', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'stopfailure-turn';
   const file = transcript(t, sessionId);
@@ -40,7 +40,7 @@ test('StopFailure marks the turn as failed', async (t) => {
     last_assistant_message: 'Let me check that file.',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', ...base, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const [turn] = exporter.getFinishedSpans()
     .filter(s => s.attributes[ATTR.OPERATION_NAME] === 'invoke_agent');
@@ -50,7 +50,7 @@ test('StopFailure marks the turn as failed', async (t) => {
 });
 
 test('a successful Stop leaves the turn unerrored', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'stopfailure-control';
   const file = transcript(t, sessionId);
@@ -65,7 +65,7 @@ test('a successful Stop leaves the turn unerrored', async (t) => {
   });
   await daemon.routeEvent({ hook_event_name: 'Stop', ...base, prompt_id: 'p1' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', ...base, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const [turn] = exporter.getFinishedSpans()
     .filter(s => s.attributes[ATTR.OPERATION_NAME] === 'invoke_agent');
