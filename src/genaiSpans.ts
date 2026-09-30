@@ -111,7 +111,7 @@ export function jsonStr(v: unknown): string {
 
 /** Plain assistant messages for turn and subagent `invoke_agent` spans;
  *  the SDK serializes them at `end()` (chat spans carry parts instead). */
-export function assistantMessages(texts: string[]): Message[] {
+export function assistantOutputMessages(texts: string[]): Message[] {
   return texts.map((content) => ({ role: 'assistant', content }));
 }
 

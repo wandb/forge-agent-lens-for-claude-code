@@ -7,7 +7,7 @@ import type * as tracing from '@coreweave/forge-sdk/agentlens/tracing';
 import { deferAgentOutcome, denyCall, finishAgentCall } from './callLifecycle.js';
 import type { ToolResult, TracedAgent } from './callLifecycle.js';
 import { emitChatSpans } from './chatSpans.js';
-import { ATTR, assistantMessages, parseTimestamp } from './genaiSpans.js';
+import { ATTR, assistantOutputMessages, parseTimestamp } from './genaiSpans.js';
 import type { ParsedTurn } from './parser.js';
 import type { Session } from './session.js';
 import { VERSION } from './setup.js';
@@ -113,7 +113,7 @@ function emitTeammate(
     emitChatSpans(span, responses, { agentName: memberName });
     const outputTexts = turns.flatMap(turn => turn.text);
     if (outputTexts.length) {
-      span.record({ outputMessages: assistantMessages(outputTexts) });
+      span.record({ outputMessages: assistantOutputMessages(outputTexts) });
     }
     return { model, text: turns.at(-1)?.text.join('\n') || undefined };
   } finally {

@@ -50,7 +50,7 @@ import type {
   TracedCall,
 } from './callLifecycle.js';
 import type { CompactionAttrs } from './genaiSpans.js';
-import { ATTR, assistantMessages, snippet } from './genaiSpans.js';
+import { ATTR, assistantOutputMessages, snippet } from './genaiSpans.js';
 import type { SpanParent } from './genaiSpans.js';
 import { parseSessionFd } from './parser.js';
 import { Session } from './session.js';
@@ -855,7 +855,7 @@ export class HookHandler {
         match.call.span.setAttributes({ [ATTR.RESPONSE_MODEL]: transcript.model });
       }
       if (!match.call.toolUseId && outputText) {
-        match.call.span.record({ outputMessages: assistantMessages([outputText]) });
+        match.call.span.record({ outputMessages: assistantOutputMessages([outputText]) });
       }
       recordAgentStop(session.calls, match);
     } else if (recovered) {
@@ -863,7 +863,7 @@ export class HookHandler {
         recovered.span.setAttributes({ [ATTR.RESPONSE_MODEL]: transcript.model });
       }
       if (outputText) {
-        recovered.span.record({ outputMessages: assistantMessages([outputText]) });
+        recovered.span.record({ outputMessages: assistantOutputMessages([outputText]) });
       }
     }
 
