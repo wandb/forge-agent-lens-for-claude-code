@@ -376,8 +376,8 @@ function finishAgentSpan(
 ): void {
   const output = outcome.ok ? outcome.output : outcome.error;
   if (output !== undefined && output !== null && output !== '') {
-    const text = typeof output === 'string' ? output : jsonStr(output);
-    call.span.setAttributes({ [ATTR.OUTPUT_MESSAGES]: assistantOutputMessages([text]) });
+    const outputText = typeof output === 'string' ? output : jsonStr(output);
+    call.span.record({ outputMessages: assistantOutputMessages([outputText]) });
   }
   if (outcome.ok) {
     call.span.end(endTime ? { endTime } : undefined);

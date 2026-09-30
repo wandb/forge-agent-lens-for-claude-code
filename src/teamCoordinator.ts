@@ -111,9 +111,10 @@ function emitTeammate(
   });
   try {
     emitChatSpans(span, responses, { agentName: memberName });
-    const output = turns.flatMap(turn => turn.text);
-    if (output.length) span.setAttributes({ [ATTR.OUTPUT_MESSAGES]: assistantOutputMessages(output) });
-    if (model) span.record({ model });
+    const outputTexts = turns.flatMap(turn => turn.text);
+    if (outputTexts.length) {
+      span.record({ outputMessages: assistantOutputMessages(outputTexts) });
+    }
     return { model, text: turns.at(-1)?.text.join('\n') || undefined };
   } finally {
     span.end({ endTime: parseTimestamp(responses.at(-1)?.endTime) ?? new Date() });
