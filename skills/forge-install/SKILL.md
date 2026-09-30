@@ -19,10 +19,10 @@ which forge-claude-code
 ## Step 1 — Install the CLI
 
 ```bash
-npm install -g @coreweave/forge-claude-code
+npm install -g forge-claude-code
 ```
 
-If it fails with a permission error (EACCES on a system Node install), confirm with the user before retrying with `sudo npm install -g @coreweave/forge-claude-code`.
+If it fails with a permission error (EACCES on a system Node install), confirm with the user before retrying with `sudo npm install -g forge-claude-code`.
 
 Verify:
 ```bash

@@ -27,7 +27,7 @@ Each status line indicates one of four states:
 | Symptom | Fix |
 |---------|-----|
 | `✗ Configuration: not found` | Run `/forge:forge-install` to complete installation |
-| `✗ CLI: not found in PATH` | Run `npm install -g @coreweave/forge-claude-code` in a terminal |
+| `✗ CLI: not found in PATH` | Run `npm install -g forge-claude-code` in a terminal |
 | `✗ Project: not set` | Run `/forge:forge-config set project ENTITY/PROJECT` |
 | `⚠ Daemon is running an older config` | A setting changed since the daemon started, so the live daemon is using stale config. Run `forge-claude-code restart` to apply the new settings. |
 | `- Daemon socket: not running` | Normal if no Claude Code session is active; daemon starts automatically on next hook event |

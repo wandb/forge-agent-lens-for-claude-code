@@ -15,10 +15,8 @@ test('the Forge package ships a self-contained marketplace and matching CLI and 
   const pkg = readJson('../package.json');
   const marketplace = readJson('../.claude-plugin/marketplace.json');
   const plugin = readJson('../.claude-plugin/plugin.json');
-  assert.equal(pkg.name, '@coreweave/forge-claude-code');
+  assert.equal(pkg.name, 'forge-claude-code');
   assert.equal(NPM_PACKAGE_NAME, pkg.name);
-  // npm publishes scoped packages as restricted unless told otherwise.
-  assert.equal(pkg.publishConfig?.access, 'public');
   assert.deepEqual(pkg.bin, { 'forge-claude-code': 'dist/cli.js' });
   assert.equal(marketplace.name, MARKETPLACE_NAME);
   // Existing installs are registered as forge@forge-claude-code, so the

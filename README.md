@@ -1,9 +1,9 @@
 # Forge Claude Code Plugin
 
-[![npm](https://img.shields.io/npm/v/@coreweave/forge-claude-code)](https://www.npmjs.com/package/@coreweave/forge-claude-code)
+[![npm](https://img.shields.io/npm/v/forge-claude-code)](https://www.npmjs.com/package/forge-claude-code)
 [![CI](https://github.com/wandb/forge-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/wandb/forge-claude-code/actions/workflows/format-and-lint.yaml)
-[![license](https://img.shields.io/npm/l/@coreweave/forge-claude-code)](LICENSES/Apache-2.0.txt)
-[![node](https://img.shields.io/node/v/@coreweave/forge-claude-code)](package.json)
+[![license](https://img.shields.io/npm/l/forge-claude-code)](LICENSES/Apache-2.0.txt)
+[![node](https://img.shields.io/node/v/forge-claude-code)](package.json)
 
 Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is logged as a structured trace, with no code changes required.
 
@@ -12,7 +12,7 @@ Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and 
 **1. Install the CLI**
 
 ```bash
-npm install -g @coreweave/forge-claude-code
+npm install -g forge-claude-code
 ```
 
 **2. Run the installer**
@@ -44,11 +44,11 @@ In non-interactive mode, the installer still creates config, registers the Claud
 By default, `claude plugin marketplace add` clones `wandb/forge-claude-code` from GitHub. In CI or container sandboxes without git/SSH access to GitHub, pass `--source=local` to register the marketplace from the npm-installed tree on disk instead:
 
 ```bash
-npm install -g @coreweave/forge-claude-code
+npm install -g forge-claude-code
 forge-claude-code install --non-interactive --source=local
 ```
 
-`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/@coreweave/forge-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
+`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/forge-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
 
 **3. Restart or launch Claude Code**
 
