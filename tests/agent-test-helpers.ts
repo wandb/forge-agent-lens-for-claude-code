@@ -5,15 +5,15 @@
 import type { TestContext } from 'node:test';
 import {
   assistantEntry,
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   userEntry,
 } from './helpers.ts';
 
 export async function boundAgent(t: TestContext, label: string) {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = `sub-${label}`;
   const agentId = `${label}-agent`;
@@ -44,5 +44,5 @@ export async function finish(
   sid: string,
 ) {
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 }

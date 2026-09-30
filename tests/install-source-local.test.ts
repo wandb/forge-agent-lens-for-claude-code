@@ -12,7 +12,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { MARKETPLACE_NAME } from '../src/setup.ts';
+import { MARKETPLACE_NAME, MARKETPLACE_REPO } from '../src/setup.ts';
 import { readFakeCalls } from './helpers.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -97,7 +97,7 @@ suite('install --source=local', () => {
     const addCall = calls.find((c) => c.startsWith('plugin marketplace add'));
     assert.ok(addCall, 'expected plugin marketplace add to be called');
     assert.ok(addCall.includes(pkgDir), `expected local path ${pkgDir} in: ${addCall}`);
-    assert.ok(!addCall.includes('wandb/weave-claude-code#'), `expected no github source in: ${addCall}`);
+    assert.ok(!addCall.includes(`${MARKETPLACE_REPO}#`), `expected no github source in: ${addCall}`);
     assert.ok(calls.some((c) => c.startsWith('plugin install')));
     assert.ok(!calls.some((c) => c.startsWith('plugin update')));
     assert.equal(result.pluginUpdated, false);

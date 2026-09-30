@@ -8,8 +8,8 @@ import * as fs from 'node:fs';
 import { ATTR } from '../src/genaiSpans.ts';
 import {
   assistantEntry,
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   makeTranscript,
   spanParentId,
@@ -38,7 +38,7 @@ test('the plugin forwards PermissionDenied hooks to the daemon', () => {
 });
 
 test('PermissionRequest accepts one hook-modified input and records suggestions', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-updated-input';
   const transcript = makeTranscript(t, sid, sid);
@@ -54,7 +54,7 @@ test('PermissionRequest accepts one hook-modified input and records suggestions'
   await daemon.routeEvent({ hook_event_name: 'PermissionRequest', session_id: sid, tool_name: 'Bash', tool_input: updatedInput, permission_suggestions: suggestions });
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', session_id: sid, tool_use_id: 'modified-tool', tool_name: 'Bash', tool_input: updatedInput, tool_response: 'ok' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const tool = exporter.getFinishedSpans().find(span =>
     span.attributes['gen_ai.tool.call.id'] === 'modified-tool');
@@ -67,7 +67,7 @@ test('PermissionRequest accepts one hook-modified input and records suggestions'
 });
 
 test('tool failure is independent from permission approval', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-failure';
   const transcript = makeTranscript(t, sid, 'permission-failure');
@@ -81,7 +81,7 @@ test('tool failure is independent from permission approval', async (t) => {
   await daemon.routeEvent({ hook_event_name: 'PermissionRequest', session_id: sid, tool_name: 'Bash', tool_input: toolInput });
   await daemon.routeEvent({ hook_event_name: 'PostToolUseFailure', session_id: sid, tool_use_id: 'failed-tool', tool_name: 'Bash', tool_input: toolInput, error: 'CommandError: exit 1' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const tool = exporter.getFinishedSpans().find(span =>
     span.attributes['gen_ai.tool.call.id'] === 'failed-tool');
@@ -91,7 +91,7 @@ test('tool failure is independent from permission approval', async (t) => {
 });
 
 test('auto-mode PermissionDenied resolves the exact tool_use_id', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-denied';
   const transcript = makeTranscript(t, sid, 'permission-denied');
@@ -106,7 +106,7 @@ test('auto-mode PermissionDenied resolves the exact tool_use_id', async (t) => {
   await daemon.routeEvent({ hook_event_name: 'PermissionDenied', session_id: sid, tool_use_id: 'denied-tool', tool_name: 'Read', tool_input: toolInput, reason: 'auto mode denied' });
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', session_id: sid, tool_use_id: 'allowed-tool', tool_name: 'Read', tool_input: toolInput, tool_response: 'ok' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const tools = exporter.getFinishedSpans().filter(span =>
     span.attributes[ATTR.OPERATION_NAME] === 'execute_tool');
@@ -120,7 +120,7 @@ test('auto-mode PermissionDenied resolves the exact tool_use_id', async (t) => {
 });
 
 test('ambiguous PermissionRequest is not guessed', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-ambiguous';
   const transcript = makeTranscript(t, sid, 'permission-ambiguous');
@@ -138,7 +138,7 @@ test('ambiguous PermissionRequest is not guessed', async (t) => {
     await daemon.routeEvent({ hook_event_name: 'PostToolUse', session_id: sid, tool_use_id: toolUseId, tool_name: 'Read', tool_input: toolInput, tool_response: 'ok' });
   }
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const tools = exporter.getFinishedSpans().filter(span =>
     span.attributes[ATTR.OPERATION_NAME] === 'execute_tool');
@@ -148,7 +148,7 @@ test('ambiguous PermissionRequest is not guessed', async (t) => {
 });
 
 test('Agent permission events stay on its invoke-agent span', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-agent';
   const transcript = makeTranscript(t, sid, sid);
@@ -162,12 +162,12 @@ test('Agent permission events stay on its invoke-agent span', async (t) => {
   await daemon.routeEvent({ hook_event_name: 'PermissionRequest', session_id: sid, tool_name: 'Agent', tool_input: toolInput });
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', session_id: sid, tool_use_id: 'agent-permission', tool_name: 'Agent', tool_input: toolInput, tool_response: 'done' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agent = exporter.getFinishedSpans().find(span =>
     span.attributes[ATTR.AGENT_NAME] === 'Explore');
   assert.ok(agent);
-  assert.equal(agent.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(agent.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(
     agent.attributes[ATTR.OUTPUT_MESSAGES],
     JSON.stringify([{ role: 'assistant', content: 'done' }]),
@@ -177,7 +177,7 @@ test('Agent permission events stay on its invoke-agent span', async (t) => {
 });
 
 test('restart recovers an Agent denied before it could start', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-agent-restart';
   const transcript = makeTranscript(t, sid, 'permission-agent-restart');
@@ -192,7 +192,7 @@ test('restart recovers an Agent denied before it could start', async (t) => {
     reason: 'auto mode denied',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
     span.attributes[ATTR.AGENT_NAME] === 'Explore');
@@ -202,7 +202,7 @@ test('restart recovers an Agent denied before it could start', async (t) => {
 });
 
 test('restart-first nested PermissionDenied recovers its owner and stays fail-closed without type', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-nested-restart';
   const ownerId = 'permission-owner';
@@ -238,12 +238,12 @@ test('restart-first nested PermissionDenied recovers its owner and stays fail-cl
     reason: 'identity incomplete',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const owner = spans.find(span => span.attributes[ATTR.AGENT_ID] === ownerId);
   const denied = spans.find(span =>
-    span.attributes[ATTR.WEAVE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-child-agent');
+    span.attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID] === 'denied-child-agent');
   assert.ok(owner && denied);
   assert.equal(spanParentId(denied), owner.spanContext().spanId);
   assert.equal(denied.attributes[ATTR.ERROR_TYPE], 'permission_denied');
@@ -254,7 +254,7 @@ test('restart-first nested PermissionDenied recovers its owner and stays fail-cl
 });
 
 test('PermissionDenied stays distinct from a recovered same-type Agent', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sid = 'permission-agent-with-recovered';
   const recoveredId = 'running-agent';
@@ -280,7 +280,7 @@ test('PermissionDenied stays distinct from a recovered same-type Agent', async (
     reason: 'auto mode denied',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sid, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const agents = exporter.getFinishedSpans().filter(span =>
     span.attributes[ATTR.OPERATION_NAME] === 'invoke_agent'

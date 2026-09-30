@@ -2,18 +2,18 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "forge-claude-code",
   "version": "0.2.15",
-  "description": "Track Claude Code sessions in Forge AgentLens for observability and debugging",
+  "description": "Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging",
   "owner": {
     "name": "wandb"
   },
   "metadata": {
-    "description": "Forge AgentLens marketplace for the forge-claude-code plugin. Provides observability and debugging for Claude Code sessions by tracking turns, tool calls, and subagents in Forge AgentLens."
+    "description": "Official CoreWeave Forge AgentLens marketplace for the forge-claude-code plugin. Traces Claude Code turns, tool calls, and subagents for observability and debugging."
   },
   "plugins": [
     {
       "name": "forge",
       "version": "0.2.15",
-      "description": "Track Claude Code sessions in Forge AgentLens for observability and debugging",
+      "description": "Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging",
       "source": "./",
       "category": "observability"
     }

@@ -10,14 +10,14 @@ import * as path from 'node:path';
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ATTR } from '../src/genaiSpans.ts';
 import {
-  flushWeave,
-  initWeaveInMemory,
+  flushForge,
+  initForgeInMemory,
   makeGenaiDaemon,
   spanParentId,
 } from './helpers.ts';
 
 function makeTranscript(t: TestContext, sessionId: string, prompt: string) {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), '.weave-tool-lifecycle-'));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), '.forge-tool-lifecycle-'));
   const file = path.join(dir, `${sessionId}.jsonl`);
   const append = (entry: Record<string, unknown>) => {
     fs.appendFileSync(file, JSON.stringify(entry) + '\n');
@@ -71,7 +71,7 @@ function turnSpans(spans: ReadableSpan[]): ReadableSpan[] {
 }
 
 test('ordinary tool calls are traced once', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'ordinary-tool';
   const transcript = makeTranscript(t, sessionId, 'read it');
@@ -97,7 +97,7 @@ test('ordinary tool calls are traced once', async (t) => {
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', ...tool, tool_response: 'duplicate' });
 
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const tools = toolSpans(spans);
@@ -111,7 +111,7 @@ test('ordinary tool calls are traced once', async (t) => {
 });
 
 test('PostToolUseFailure records the tool result and error type', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'failed-tool';
   const transcript = makeTranscript(t, sessionId, 'run it');
@@ -133,7 +133,7 @@ test('PostToolUseFailure records the tool result and error type', async (t) => {
     hook_event_name: 'PostToolUseFailure', ...tool, error: 'CommandError: exit 1',
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const [span] = toolSpans(exporter.getFinishedSpans());
   assert.ok(span);
@@ -143,7 +143,7 @@ test('PostToolUseFailure records the tool result and error type', async (t) => {
 });
 
 test('malformed tool payloads are rejected before session recovery', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'invalid-tool-payloads';
   const transcript = makeTranscript(t, sessionId, 'do not recover');
@@ -171,13 +171,13 @@ test('malformed tool payloads are rejected before session recovery', async (t) =
     hook_event_name: 'PreToolUse', ...base,
     tool_input: { file_path: '/tmp/x', offset: Number.NaN },
   });
-  await flushWeave();
+  await flushForge();
 
   assert.deepEqual(exporter.getFinishedSpans(), []);
 });
 
 test('a restart-first terminal hook recovers one exact tool and turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'terminal-tool-restart';
   const transcript = makeTranscript(t, sessionId, 'read after restart');
@@ -195,7 +195,7 @@ test('a restart-first terminal hook recovers one exact tool and turn', async (t)
   await daemon.routeEvent({ hook_event_name: 'PreToolUse', ...tool });
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', ...tool, tool_response: 'duplicate' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const tools = toolSpans(spans);
@@ -210,7 +210,7 @@ test('a restart-first terminal hook recovers one exact tool and turn', async (t)
 });
 
 test('a restart-first tool result recovers its prompt and triggering response', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'terminal-tool-response-restart';
   const transcript = makeTranscript(t, sessionId, 'read after restart');
@@ -238,7 +238,7 @@ test('a restart-first tool result recovers its prompt and triggering response', 
     hook_event_name: 'SessionEnd', session_id: sessionId,
     prompt_id: 'prompt-b', reason: 'clear',
   });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const tool = toolSpans(spans).find(span =>
@@ -279,7 +279,7 @@ test('restart-first tool results preserve SessionEnd prompt identity', async (t)
 
   for (const scenario of scenarios) {
     await t.test(scenario.name, async (t) => {
-      const exporter = await initWeaveInMemory();
+      const exporter = await initForgeInMemory();
       exporter.reset();
       const sessionId = `restart-prompt-${scenario.name.replaceAll(' ', '-')}`;
       const transcript = makeTranscript(t, sessionId, 'older');
@@ -298,7 +298,7 @@ test('restart-first tool results preserve SessionEnd prompt identity', async (t)
         hook_event_name: 'SessionEnd', session_id: sessionId,
         prompt_id: scenario.endPrompt, transcript_path: transcript.file, reason: 'clear',
       });
-      await flushWeave();
+      await flushForge();
 
       const spans = exporter.getFinishedSpans();
       const tool = toolSpans(spans).find(span =>
@@ -319,7 +319,7 @@ test('restart-first tool results preserve SessionEnd prompt identity', async (t)
 });
 
 test('SessionEnd orphans unfinished tools before closing their turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'open-tool-session-end';
   const transcript = makeTranscript(t, sessionId, 'keep reading');
@@ -337,20 +337,20 @@ test('SessionEnd orphans unfinished tools before closing their turn', async (t) 
     tool_use_id: 'open-read', tool_name: 'Read', tool_input: { file_path: '/tmp/open.txt' },
   });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const [tool] = toolSpans(spans);
   const [turn] = turnSpans(spans);
   assert.ok(tool && turn);
-  assert.equal(tool.attributes[ATTR.WEAVE_ORPHAN_REASON], 'session_ended');
+  assert.equal(tool.attributes[ATTR.FORGE_ORPHAN_REASON], 'session_ended');
   assert.equal(tool.status.code, 2);
   assert.equal(spanParentId(tool), turn.spanContext().spanId);
   assert.ok(spans.indexOf(tool) < spans.indexOf(turn), 'child exports before its parent');
 });
 
 test('prompt_id keeps background tools attached to their original turns', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'tool-prompt-ownership';
   const transcript = makeTranscript(t, sessionId, 'first');
@@ -382,11 +382,11 @@ test('prompt_id keeps background tools attached to their original turns', async 
   await daemon.routeEvent({ hook_event_name: 'PreToolUse', ...second });
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', ...second, tool_response: 'second' });
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', ...first, tool_response: 'first' });
-  await flushWeave();
+  await flushForge();
   assert.equal(turnSpans(exporter.getFinishedSpans()).length, 1);
 
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const turns = turnSpans(spans);
@@ -403,7 +403,7 @@ test('prompt_id keeps background tools attached to their original turns', async 
 });
 
 test('Stop(prompt_id) snapshots only its turn and later tools keep their owners', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'stop-selected-prompt';
   const transcript = makeTranscript(t, sessionId, 'older prompt');
@@ -432,7 +432,7 @@ test('Stop(prompt_id) snapshots only its turn and later tools keep their owners'
   await daemon.routeEvent({
     hook_event_name: 'Stop', session_id: sessionId, prompt_id: 'prompt-1',
   });
-  await flushWeave();
+  await flushForge();
 
   const afterStop = exporter.getFinishedSpans();
   assert.deepEqual(chatsById(afterStop), ['older-response']);
@@ -450,7 +450,7 @@ test('Stop(prompt_id) snapshots only its turn and later tools keep their owners'
     await daemon.routeEvent({ hook_event_name: 'PostToolUse', ...tool, tool_response: 'done' });
   }
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const olderChat = spans.find(span => span.attributes[ATTR.RESPONSE_ID] === 'older-response');
@@ -466,7 +466,7 @@ test('Stop(prompt_id) snapshots only its turn and later tools keep their owners'
 });
 
 test('a legacy next prompt orphans its open tool and starts a clean turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'legacy-tool-prompt-boundary';
   const transcript = makeTranscript(t, sessionId, 'first');
@@ -499,7 +499,7 @@ test('a legacy next prompt orphans its open tool and starts a clean turn', async
   await daemon.routeEvent({ hook_event_name: 'PreToolUse', ...next });
   await daemon.routeEvent({ hook_event_name: 'PostToolUse', ...next, tool_response: 'next result' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', session_id: sessionId, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   const firstTurn = turnSpans(spans).find(span =>
@@ -511,11 +511,11 @@ test('a legacy next prompt orphans its open tool and starts a clean turn', async
   const nextTool = toolSpans(spans).find(span =>
     span.attributes['gen_ai.tool.call.id'] === 'next-tool');
   assert.ok(firstTurn && secondTurn && oldTool && nextTool);
-  assert.equal(oldTool.attributes[ATTR.WEAVE_ORPHAN_REASON], 'superseded_by_next_prompt');
+  assert.equal(oldTool.attributes[ATTR.FORGE_ORPHAN_REASON], 'superseded_by_next_prompt');
   assert.equal(oldTool.attributes['gen_ai.tool.call.result'], undefined);
   assert.equal(spanParentId(oldTool), firstTurn.spanContext().spanId);
   assert.equal(nextTool.attributes['gen_ai.tool.call.result'], 'next result');
-  assert.equal(nextTool.attributes[ATTR.WEAVE_ORPHAN_REASON], undefined);
+  assert.equal(nextTool.attributes[ATTR.FORGE_ORPHAN_REASON], undefined);
   assert.equal(spanParentId(nextTool), secondTurn.spanContext().spanId);
 });
 
@@ -526,7 +526,7 @@ function chatsById(spans: ReadableSpan[]): unknown[] {
 }
 
 test('a late duplicate PreToolUse for a finished tool does not mint an empty turn', async (t) => {
-  const exporter = await initWeaveInMemory();
+  const exporter = await initForgeInMemory();
   exporter.reset();
   const sessionId = 'duplicate-pre-tool-use';
   const transcript = makeTranscript(t, sessionId, 'prompt one');
@@ -557,7 +557,7 @@ test('a late duplicate PreToolUse for a finished tool does not mint an empty tur
   // Out of order: the tool_use_id is already tombstoned.
   await daemon.routeEvent({ hook_event_name: 'PreToolUse', ...tool, prompt_id: 'p1' });
   await daemon.routeEvent({ hook_event_name: 'SessionEnd', ...base, reason: 'clear' });
-  await flushWeave();
+  await flushForge();
 
   const spans = exporter.getFinishedSpans();
   assert.equal(toolSpans(spans).length, 1, 'the duplicate must not reopen the tool span');

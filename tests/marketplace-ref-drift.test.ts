@@ -11,12 +11,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { MARKETPLACE_NAME, MARKETPLACE_REPO } from '../src/setup.ts';
+import { MARKETPLACE_NAME, MARKETPLACE_REPO, PLUGIN_NAME } from '../src/setup.ts';
 import { readFakeCalls, writeKnownMarketplace } from './helpers.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FAKE_CLAUDE_BIN_DIR = path.join(HERE, 'fixtures', 'fake-claude-bin');
-const PLUGIN_SPEC = `forge@${MARKETPLACE_NAME}`;
+const PLUGIN_SPEC = `${PLUGIN_NAME}@${MARKETPLACE_NAME}`;
 const KNOWN_MARKETPLACES_REL = path.join('.claude', 'plugins', 'known_marketplaces.json');
 
 function seedInstalledPlugin(home: string): void {

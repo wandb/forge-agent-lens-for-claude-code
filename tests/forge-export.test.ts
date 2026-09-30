@@ -16,8 +16,9 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
     const chunks: Buffer[] = [];
     for await (const chunk of req) chunks.push(Buffer.from(chunk));
     requests.push({ url: req.url ?? '', headers: req.headers, body: Buffer.concat(chunks) });
-    res.setHeader('content-type', 'application/x-protobuf');
-    res.end();
+    // Weave answers a protobuf export with a JSON body.
+    res.setHeader('content-type', 'application/json');
+    res.end('{}');
   });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
@@ -25,8 +26,8 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
   assert.ok(address && typeof address !== 'string');
   const daemon = await startTestDaemon({ env: {
     WANDB_API_KEY: 'wire-test-key',
-    WEAVE_PROJECT: 'test/test',
-    WF_TRACE_SERVER_URL: `http://127.0.0.1:${address.port}`,
+    FORGE_TRACE_PROJECT: 'test/test',
+    FORGE_TRACE_BASE_URL: `http://127.0.0.1:${address.port}`,
   } });
   try {
     const session_id = 'forge-wire';
@@ -46,10 +47,14 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
       assert.equal(request.url, '/agents/otel/v1/traces');
       assert.equal(request.headers['wandb-api-key'], 'wire-test-key');
       assert.equal(request.headers.project_id, 'test/test');
-      assert.ok(request.body.includes(Buffer.from('forge-integration')));
       assert.ok(request.body.includes(Buffer.from('wandb.sdk.name')));
+      assert.ok(request.body.includes(Buffer.from('forge.integration.name')));
+      assert.ok(request.body.includes(Buffer.from('forge-claude-code')));
+      assert.ok(!request.body.includes(Buffer.from('weave.integration')));
+      assert.ok(!request.body.includes(Buffer.from('weave.claude_code')));
+      assert.ok(!request.body.includes(Buffer.from('weave.source')));
     }
-    assert.doesNotMatch(daemon.readLog(), /Error flushing|OTLPExporterError/);
+    assert.doesNotMatch(daemon.readLog(), /\| ERROR \|/);
   } finally {
     await daemon.stop();
     await new Promise<void>(resolve => server.close(() => resolve()));

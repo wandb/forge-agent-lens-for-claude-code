@@ -47,11 +47,11 @@ interface Workspace {
 
 function newWorkspace(label: string): Workspace {
   const home = fs.mkdtempSync(path.join(scratch, `${label}-`));
-  const configDir = path.join(home, '.weave-claude-code');
+  const configDir = path.join(home, '.forge-claude-code');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });
   const socketPath = path.join(configDir, 'daemon.sock');
   const settings = {
-    weave_project: 'fake-entity/fake-project',
+    project: 'fake-entity/fake-project',
     wandb_api_key: 'fake-api-key',
     daemon_socket: socketPath,
     log_file: path.join(configDir, 'logs', 'daemon.log'),
@@ -220,36 +220,6 @@ suite('hook-socket.mjs send', () => {
     });
   });
 
-  test('merges WEAVE_PARENT_CALL_ID and WEAVE_TRACE_ID into the payload', async () => {
-    const w = newWorkspace('mjs-send-merge');
-    await withListener(w.socketPath, async (received) => {
-      const r = await runMjs(['send', w.socketPath], {
-        stdin: '{"event":"PreToolUse"}',
-        env: { WEAVE_PARENT_CALL_ID: 'call-abc', WEAVE_TRACE_ID: 'trace-xyz' },
-      });
-      assert.equal(r.code, 0, `expected exit 0; stderr=${r.stderr}`);
-      await new Promise((r) => setTimeout(r, 25));
-      assert.equal(received.length, 1);
-      const parsed = JSON.parse(received[0]!);
-      assert.equal(parsed.event, 'PreToolUse');
-      assert.equal(parsed.weave_parent_call_id, 'call-abc');
-      assert.equal(parsed.weave_trace_id, 'trace-xyz');
-    });
-  });
-
-  test('passes payload through unchanged when no Weave env vars are set', async () => {
-    const w = newWorkspace('mjs-send-passthrough');
-    await withListener(w.socketPath, async (received) => {
-      const r = await runMjs(['send', w.socketPath], {
-        stdin: '{"event":"Stop","raw":"untouched"}',
-        env: { WEAVE_PARENT_CALL_ID: '', WEAVE_TRACE_ID: '' },
-      });
-      assert.equal(r.code, 0, `expected exit 0; stderr=${r.stderr}`);
-      await new Promise((r) => setTimeout(r, 25));
-      assert.deepEqual(received, ['{"event":"Stop","raw":"untouched"}']);
-    });
-  });
-
   test('exits 1 when the socket path does not exist', async () => {
     const w = newWorkspace('mjs-send-absent');
     const r = await runMjs(['send', w.socketPath], { stdin: '{}' });
@@ -366,9 +336,9 @@ suite('daemon signal cleanup', () => {
       ['--import', 'tsx', CLI, 'daemon'],
       {
         cwd: REPO_ROOT,
-        // Point WANDB_BASE_URL at a port that refuses connections so the OTel
+        // Point FORGE_TRACE_BASE_URL at a port that refuses connections so the OTel
         // exporter never reaches real wandb.ai during the test.
-        env: { ...process.env, HOME: w.home, WANDB_BASE_URL: 'http://127.0.0.1:1' },
+        env: { ...process.env, HOME: w.home, FORGE_TRACE_BASE_URL: 'http://127.0.0.1:1' },
         stdio: ['ignore', 'pipe', 'pipe'],
       },
     );

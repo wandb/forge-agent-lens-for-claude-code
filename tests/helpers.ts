@@ -22,19 +22,19 @@ const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 
 /**
  * Create a throwaway $HOME with a minimal `settings.json` for exercising
- * `config` subcommands. The seed deliberately omits `agent_name` so tests can
- * verify resolution on settings files written before that field existed.
+ * `config` subcommands.
  */
 export function seedConfigHome(label: string): { home: string; settingsFile: string } {
   const home = fs.mkdtempSync(`/tmp/wcp-${label}-`);
-  const dir = path.join(home, '.weave-claude-code');
+  const dir = path.join(home, '.forge-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const settingsFile = path.join(dir, 'settings.json');
   fs.writeFileSync(settingsFile, JSON.stringify({
     log_file: path.join(dir, 'logs', 'daemon.log'),
     daemon_socket: path.join(dir, 'daemon.sock'),
-    weave_project: null,
+    project: null,
     wandb_api_key: null,
+    agent_name: null,
     debug: false,
     installed_at: '2026-01-01T00:00:00Z',
     version: '0.0.0-test',
@@ -51,8 +51,8 @@ export function runCli(home: string, args: string[], extraEnv: Record<string, st
   return new Promise((resolve, reject) => {
     const env = { ...process.env, HOME: home };
     delete env.WANDB_API_KEY;
-    delete env.WEAVE_PROJECT;
-    delete env.WEAVE_AGENT_NAME;
+    delete env.FORGE_TRACE_PROJECT;
+    delete env.FORGE_CLAUDE_CODE_AGENT_NAME;
     Object.assign(env, extraEnv);
     const child = spawn(process.execPath, ['--import', 'tsx', CLI, ...args], { cwd: REPO_ROOT, env });
     let stdout = '';
@@ -97,10 +97,10 @@ export function writeKnownMarketplace(home: string, source: Record<string, unkno
 
 let genaiExporter: InMemorySpanExporter | undefined;
 
-export async function initWeaveInMemory(): Promise<InMemorySpanExporter> {
+export async function initForgeInMemory(): Promise<InMemorySpanExporter> {
   if (!genaiExporter) {
     const settings: Settings = {
-      log_file: '', daemon_socket: '', weave_project: 'e/p', wandb_api_key: 'fake-key-for-test',
+      log_file: '', daemon_socket: '', project: 'e/p', wandb_api_key: 'fake-key-for-test',
       agent_name: null, debug: false, installed_at: '', version: '0.0.0-test',
     };
     process.env.WANDB_API_KEY = resolveApiKey(settings).value ?? '';
@@ -129,7 +129,7 @@ export function makeTranscript(
   sessionId: string,
   label = 'trace',
 ): TranscriptHarness {
-  const dir = fs.mkdtempSync(path.join(os.homedir(), `.weave-${label}-`));
+  const dir = fs.mkdtempSync(path.join(os.homedir(), `.forge-${label}-`));
   const file = path.join(dir, `${sessionId}.jsonl`);
   fs.writeFileSync(file, '');
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -181,7 +181,7 @@ export function assistantEntry(
 export function makeGenaiDaemon(agentName = 'claude-code'): DaemonDriver {
   const logFile = path.join(os.tmpdir(), `wcp-genai-${process.pid}.log`);
   const d = new Daemon('/tmp/unused.sock', logFile, {
-    weaveProject: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName, debug: false,
+    project: 'e/p', apiKey: 'k', baseUrl: 'https://x', agentName, debug: false,
   });
   (d as unknown as { tracingEnabled: boolean }).tracingEnabled = true;
   return d as unknown as DaemonDriver;
@@ -215,13 +215,12 @@ export function transcriptAssistantLine(
   });
 }
 
-export function flushWeave(): Promise<void> {
-  return tracing.flushOTel();
+export function flushForge(): Promise<void> {
+  return tracing.forceFlush();
 }
 
-/** Support both current and older OTel parent-span fields. */
 export function spanParentId(s: ReadableSpan): string | undefined {
-  return (s as unknown as { parentSpanId?: string }).parentSpanId ?? s.parentSpanContext?.spanId;
+  return s.parentSpanContext?.spanId;
 }
 
 export function childrenOf(spans: ReadableSpan[], parent: ReadableSpan): ReadableSpan[] {
@@ -270,20 +269,20 @@ export interface TestDaemon {
 /**
  * Start a daemon in a throwaway home and wait until its socket is accepting.
  * `opts.settings` is merged into the generated settings.json; `opts.env` into
- * the daemon's environment (e.g. WEAVE_INACTIVITY_MS).
+ * the daemon's environment (e.g. FORGE_CLAUDE_CODE_INACTIVITY_MS).
  */
 export async function startTestDaemon(
   opts: { settings?: Record<string, unknown>; env?: Record<string, string> } = {},
 ): Promise<TestDaemon> {
-  const home = fs.mkdtempSync(path.join(os.homedir(), '.weave-daemontest-'));
-  const configDir = path.join(home, '.weave-claude-code');
+  const home = fs.mkdtempSync(path.join(os.homedir(), '.forge-daemontest-'));
+  const configDir = path.join(home, '.forge-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });
   fs.writeFileSync(
     path.join(configDir, 'settings.json'),
     JSON.stringify({
-      weave_project: 'test/test',
+      project: 'test/test',
       wandb_api_key: 'fake-key-for-test',
       daemon_socket: socketPath,
       log_file: logPath,
@@ -294,7 +293,7 @@ export async function startTestDaemon(
 
   const proc = spawn(process.execPath, ['--import', 'tsx', CLI, 'daemon'], {
     env: {
-      ...process.env, HOME: home, WANDB_BASE_URL: 'http://127.0.0.1:1',
+      ...process.env, HOME: home, FORGE_TRACE_BASE_URL: 'http://127.0.0.1:1',
       OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: '1000', ...opts.env,
     },
     stdio: 'ignore',

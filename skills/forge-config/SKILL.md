@@ -9,7 +9,7 @@ Read and update configuration for the Forge Claude Code plugin.
 
 ## Determine Intent
 
-If the user invoked this skill with arguments (e.g., `/forge:forge-config set weave_project entity/project`), execute the corresponding command directly. Otherwise, show the current configuration first and then ask what they want to change.
+If the user invoked this skill with arguments (e.g., `/forge:forge-config set project entity/project`), execute the corresponding command directly. Otherwise, show the current configuration first and then ask what they want to change.
 
 ## Show Current Config
 
@@ -31,17 +31,17 @@ Writable keys:
 
 | Key | Format | Example |
 |-----|--------|---------|
-| `weave_project` | `entity/project` | `my-org/my-project` |
+| `project` | `entity/project` | `my-org/my-project` |
 | `wandb_api_key` | string | `abc123...` |
 | `agent_name` | string | `my-team-bot` |
 | `debug` | `true` / `false` | `true` |
-| `daemon_socket` | file path | `~/.weave-claude-code/daemon.sock` |
+| `daemon_socket` | file path | `~/.forge-claude-code/daemon.sock` |
 
 **Validation notes:**
-- `weave_project` must contain a `/` (entity/project format). Find your entity name at https://wandb.ai.
+- `project` must contain a `/` (entity/project format). Find your entity name at https://wandb.ai.
 - `wandb_api_key` is available at https://wandb.ai/authorize.
-- `agent_name` is the name shown for the top-level agent in Forge AgentLens view. It must not be empty; surrounding whitespace is trimmed. Defaults to `claude-code` when unset.
-- Environment variables `WEAVE_PROJECT`, `WANDB_API_KEY`, and `WEAVE_AGENT_NAME` take precedence over settings file values when set.
+- `agent_name` is the name shown for the top-level agent in CoreWeave Forge AgentLens. It must not be empty; surrounding whitespace is trimmed. Defaults to `claude-code` when unset.
+- Environment variables `FORGE_TRACE_PROJECT`, `WANDB_API_KEY`, and `FORGE_CLAUDE_CODE_AGENT_NAME` take precedence over settings file values when set.
 
 ## Get a Single Value
 
@@ -52,7 +52,7 @@ forge-claude-code config get KEY
 
 ## After Changes
 
-After setting `weave_project`, `wandb_api_key`, or `agent_name`, run `forge-claude-code config show` to confirm the new value.
+After setting `project`, `wandb_api_key`, or `agent_name`, run `forge-claude-code config show` to confirm the new value.
 
 The daemon reads these once at startup and persists across Claude Code sessions, so a change is **not** picked up by a daemon that is already running. Apply it with:
 
