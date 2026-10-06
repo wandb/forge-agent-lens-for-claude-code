@@ -794,7 +794,7 @@ export class HookHandler {
       return;
     }
 
-    // Prompt-suggestion forks stop with no tracker, prompt, or transcript.
+    // No tracker, prompt, or transcript: no tool call dispatched this agent, so it gets no span.
     if (match.kind === 'missing' && !prompt && teamLifecycle === undefined) {
       this.log(
         'INFO',
