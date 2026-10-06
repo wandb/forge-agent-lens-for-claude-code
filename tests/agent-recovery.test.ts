@@ -512,3 +512,50 @@ test('a Stop-first recovered Agent adopts a late Post whose dispatch is in an ea
   assert.equal(agents[0].attributes[ATTR.AGENT_ID], agentId);
   assert.equal(agents[0].attributes[ATTR.FORGE_SUBAGENT_SPAWNING_TOOL_CALL_ID], 'agent-call');
 });
+
+test('untracked SubagentStop without prompt or transcript emits no span', async (t) => {
+  const exporter = await initForgeInMemory();
+  exporter.reset();
+  const sid = 'sub-phantom-stop';
+  const transcript = makeTranscript(t, sid, sid);
+  transcript.append(userEntry('delegate it'));
+  const subPath = transcript.subagent('real-agent', userEntry('real task'));
+  const daemon = makeGenaiDaemon();
+
+  await daemon.routeEvent({
+    hook_event_name: 'SessionStart', session_id: sid,
+    transcript_path: transcript.file, source: 'startup', cwd: '/x',
+  });
+  await daemon.routeEvent({ hook_event_name: 'UserPromptSubmit', session_id: sid, prompt: 'delegate it' });
+  // Tracked: dispatched and started, then stopped with no readable transcript.
+  await daemon.routeEvent({
+    hook_event_name: 'PreToolUse', session_id: sid, tool_use_id: 'tracked-call',
+    tool_name: 'Agent', tool_input: { subagent_type: 'Explore', prompt: 'tracked task' },
+  });
+  await daemon.routeEvent({
+    hook_event_name: 'SubagentStart', session_id: sid,
+    agent_id: 'tracked-agent', agent_type: 'Explore',
+  });
+  await daemon.routeEvent({
+    hook_event_name: 'SubagentStop', session_id: sid,
+    agent_id: 'tracked-agent', agent_type: 'Explore', last_assistant_message: 'tracked done',
+  });
+  // Untracked with a transcript: still recovered.
+  await daemon.routeEvent({
+    hook_event_name: 'SubagentStop', session_id: sid, agent_id: 'real-agent',
+    agent_type: 'Explore', agent_transcript_path: subPath,
+  });
+  // Untracked with neither prompt nor transcript: a prompt-suggestion fork.
+  await daemon.routeEvent({
+    hook_event_name: 'SubagentStop', session_id: sid, agent_id: 'phantom-agent',
+    agent_type: 'claude', last_assistant_message: 'push it',
+  });
+  await finish(daemon, sid);
+
+  const agentIds = exporter.getFinishedSpans()
+    .filter(span => span.attributes[ATTR.OPERATION_NAME] === 'invoke_agent'
+      && span.attributes[ATTR.AGENT_NAME] !== 'claude-code')
+    .map(span => span.attributes[ATTR.AGENT_ID])
+    .sort();
+  assert.deepEqual(agentIds, ['real-agent', 'tracked-agent']);
+});

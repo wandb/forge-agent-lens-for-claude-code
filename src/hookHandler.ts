@@ -794,6 +794,15 @@ export class HookHandler {
       return;
     }
 
+    // Prompt-suggestion forks stop with no tracker, prompt, or transcript.
+    if (match.kind === 'missing' && !prompt && teamLifecycle === undefined) {
+      this.log(
+        'INFO',
+        `SubagentStop: skipped untracked agent without prompt or transcript agentId=${input.agent_id} type=${input.agent_type}`,
+      );
+      return;
+    }
+
     const turn = session.turnForPrompt(input.prompt_id);
     const recovered = match.kind === 'missing'
       ? this.recoverAgent(
