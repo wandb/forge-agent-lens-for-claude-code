@@ -88,7 +88,7 @@ export class Daemon {
         );
         this.log(
           'INFO',
-          `View traces: https://wandb.ai/${this.config.project}/weave/agents`,
+          `View traces: https://forge.coreweave.com/wandb/${this.config.project}/weave/agents`,
         );
       } catch (err) {
         this.log(

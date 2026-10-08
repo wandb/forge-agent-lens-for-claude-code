@@ -65,7 +65,7 @@ Check current state:
 forge-agent-lens-for-claude-code config show
 ```
 
-If `wandb_api_key` shows `(not set)` and no `WANDB_API_KEY` env var is active, ask the user for their key (https://wandb.ai/authorize) and set it:
+If `wandb_api_key` shows `(not set)` and no `WANDB_API_KEY` env var is active, ask the user for their key (https://forge.coreweave.com/wandb/authorize) and set it:
 ```bash
 forge-agent-lens-for-claude-code config set wandb_api_key API_KEY
 ```

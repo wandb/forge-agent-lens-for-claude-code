@@ -26,7 +26,7 @@ This will:
 - Register the plugin in Claude Code
 - Prompt for your Forge project (`entity/project`) and W&B API key if not already set
 
-Your W&B API key is available at https://wandb.ai/authorize.
+Your W&B API key is available at https://forge.coreweave.com/wandb/authorize.
 
 For CI, bootstrap scripts, or other automated systems, you can skip prompts:
 

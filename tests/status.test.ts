@@ -79,7 +79,7 @@ suite('forge-agent-lens-for-claude-code status (pretty)', () => {
     assert.match(r.stdout, /✓ API key\s+.+\(settings\.json\)/);
     assert.match(r.stdout, /Daemon\s+○ not running/);
     assert.match(r.stdout, /- Log\s+.+\(not created yet\)/);
-    assert.match(r.stdout, /wandb\.ai\/fake-entity\/fake-project\/weave\/agents/);
+    assert.match(r.stdout, /forge\.coreweave\.com\/wandb\/fake-entity\/fake-project\/weave\/agents/);
   });
 
   test('prints the configured agent name', async () => {
@@ -182,7 +182,7 @@ suite('forge-agent-lens-for-claude-code status --json', () => {
     assert.equal(log.size_bytes, null);
 
     assert.equal(parsed['ready_to_trace'], true);
-    assert.equal(parsed['view_traces_url'], 'https://wandb.ai/fake-entity/fake-project/weave/agents');
+    assert.equal(parsed['view_traces_url'], 'https://forge.coreweave.com/wandb/fake-entity/fake-project/weave/agents');
   });
 
   test('reports the resolved agent name in JSON', async () => {

@@ -198,7 +198,7 @@ async function cmdInstall(
     }
 
     if (!effectiveApiKey) {
-      console.log('\nGet your API key at: https://wandb.ai/authorize (update domain for other deployments)');
+      console.log('\nGet your API key at: https://forge.coreweave.com/wandb/authorize (update domain for other deployments)');
       const answer = await prompt('W&B API key: ');
       const value = answer.trim();
       if (value) {
@@ -510,7 +510,7 @@ async function gatherStatus(): Promise<StatusSnapshot> {
 
   if (effectiveProject && effectiveApiKey && report.daemon_socket.state !== SocketState.Stale) {
     report.ready_to_trace = true;
-    report.view_traces_url = `https://wandb.ai/${effectiveProject}/weave/agents`;
+    report.view_traces_url = `https://forge.coreweave.com/wandb/${effectiveProject}/weave/agents`;
   }
 
   return snap;
