@@ -34,8 +34,10 @@
     "hooks/",
     "skills/",
     ".claude-plugin/",
+    "LICENSE",
     "LICENSES/",
-    "NOTICE"
+    "NOTICE",
+    "REUSE.toml"
   ],
   "publishConfig": {
     "access": "public"
