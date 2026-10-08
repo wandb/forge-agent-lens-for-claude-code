@@ -1,4 +1,4 @@
-# Contributing to forge-claude-code
+# Contributing to forge-agent-lens-for-claude-code
 
 Until further notice, this project does not accept external contributions as of March 2026.
 
@@ -19,7 +19,7 @@ npm run check
 Source code should contain an SPDX-style license header, reflecting:
 - Year & Copyright owner
 - SPDX License identifier `SPDX-License-Identifier: Apache-2.0`
-- Package Name: `SPDX-PackageName: forge-claude-code`
+- Package Name: `SPDX-PackageName: forge-agent-lens-for-claude-code`
 
 This can be partially automated with [FSFe REUSE](https://reuse.software/dev/#tool)
 ```shell
@@ -30,7 +30,7 @@ Blindly adding the headers to every file without review risks assigning the
 wrong copyright owner! You should endeavor to understand who owns
 contributions!
 
-- The forge-claude-code source is licensed under the Apache License 2.0 to protect the
+- The forge-agent-lens-for-claude-code source is licensed under the Apache License 2.0 to protect the
   rights of all parties.
 
 Licensing state & SPDX bill-of-materials (BOM) can be valiated & generated with:

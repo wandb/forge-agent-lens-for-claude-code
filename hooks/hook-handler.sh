@@ -2,21 +2,21 @@
 
 # SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-PackageName: forge-claude-code
+# SPDX-PackageName: forge-agent-lens-for-claude-code
 
 # Receives a Claude Code lifecycle event on stdin (JSON) and forwards it to the
-# Forge Claude Code daemon via Unix socket. Starts the daemon first if it is not running.
+# Forge Agent Lens for Claude Code daemon via Unix socket. Starts the daemon first if it is not running.
 #
 # Assumptions:
-#   - forge-claude-code is on PATH (installed globally via npm install -g),
+#   - forge-agent-lens-for-claude-code is on PATH (installed globally via npm install -g),
 #     which implies node is on PATH too.
 #
-# Errors are written to ~/.forge-claude-code/logs/hook-errors.log.
+# Errors are written to ~/.forge-agent-lens-for-claude-code/logs/hook-errors.log.
 # The script always exits 0 so it never disrupts Claude Code.
 
 set -uo pipefail
 
-CONFIG_DIR="${HOME}/.forge-claude-code"
+CONFIG_DIR="${HOME}/.forge-agent-lens-for-claude-code"
 SETTINGS_FILE="${CONFIG_DIR}/settings.json"
 ERROR_LOG="${CONFIG_DIR}/logs/hook-errors.log"
 SOCKET_PATH="${CONFIG_DIR}/daemon.sock"
@@ -32,8 +32,8 @@ mkdir -p "${CONFIG_DIR}/logs"
 
 # ── dependency checks ─────────────────────────────────────────────────────────
 
-if ! command -v forge-claude-code >/dev/null 2>&1; then
-  echo "$(date -Iseconds) | ERROR | forge-claude-code not found in PATH. Run: npm install -g @coreweave/forge-claude-code" >> "${ERROR_LOG}"
+if ! command -v forge-agent-lens-for-claude-code >/dev/null 2>&1; then
+  echo "$(date -Iseconds) | ERROR | forge-agent-lens-for-claude-code not found in PATH. Run: npm install -g @coreweave/forge-agent-lens-for-claude-code" >> "${ERROR_LOG}"
   exit 0
 fi
 
@@ -43,8 +43,8 @@ if [ ! -f "${SETTINGS_FILE}" ]; then
   cat >> "${ERROR_LOG}" << 'EOF'
 ========================================
 ERROR | Plugin not configured.
-Run:  forge-claude-code install
-Then: forge-claude-code config set project ENTITY/PROJECT
+Run:  forge-agent-lens-for-claude-code install
+Then: forge-agent-lens-for-claude-code config set project ENTITY/PROJECT
 ========================================
 EOF
   exit 0
@@ -85,7 +85,7 @@ if ! is_daemon_alive; then
   # `disown` detaches it from this shell's job table. (macOS has no `setsid`, so
   # nohup+disown is the portable detach.) The daemon still self-reaps via its
   # inactivity timeout, so it won't linger forever.
-  nohup forge-claude-code daemon >> "${ERROR_LOG}" 2>&1 &
+  nohup forge-agent-lens-for-claude-code daemon >> "${ERROR_LOG}" 2>&1 &
   disown 2>/dev/null || true
 
   # Wait up to 5 s (50 × 100 ms) for the daemon to accept connections.
@@ -99,8 +99,8 @@ if ! is_daemon_alive; then
   if ! is_daemon_alive; then
     cat >> "${ERROR_LOG}" << EOF
 $(date -Iseconds) | ERROR | Daemon did not start within 5 s.
-  Diagnose: forge-claude-code status
-  Logs:     forge-claude-code logs --tail 50
+  Diagnose: forge-agent-lens-for-claude-code status
+  Logs:     forge-agent-lens-for-claude-code logs --tail 50
 EOF
     exit 0
   fi

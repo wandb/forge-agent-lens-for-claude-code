@@ -22,6 +22,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           path-to-signatures: "cla/signatures/version1/cla.json"
-          path-to-document: "https://github.com/wandb/forge-claude-code/blob/main/cla.md"
+          path-to-document: "https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/cla.md"
           branch: "cla"
           allowlist: actions-user, dependabot[bot], wandbmachine

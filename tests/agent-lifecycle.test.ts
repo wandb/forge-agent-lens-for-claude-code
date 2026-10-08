@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -48,7 +48,7 @@ test('subagent topology: marker owns its chat, tools, identity, and canonical re
   assert.equal(chat.attributes[ATTR.USAGE_INPUT_TOKENS], 120);
   for (const span of [agent, chat, tool]) {
     assert.equal(span.attributes[ATTR.CONVERSATION_ID], sid);
-    assert.equal(span.attributes[ATTR.FORGE_INTEGRATION_NAME], 'forge-claude-code');
+    assert.equal(span.attributes[ATTR.FORGE_INTEGRATION_NAME], 'forge-agent-lens-for-claude-code');
   }
 });
 

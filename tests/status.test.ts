@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
-// Tests for `forge-claude-code status` — both the human-readable output and
+// Tests for `forge-agent-lens-for-claude-code status` — both the human-readable output and
 // the `--json` output. The stale-socket case is covered separately in
 // stale-daemon-socket.test.ts as part of the cross-layer stale-recovery story.
 
@@ -30,7 +30,7 @@ interface SettingsOverrides {
 }
 
 function writeSettings(home: string, overrides: SettingsOverrides = {}): { socketPath: string; logFile: string } {
-  const configDir = path.join(home, '.forge-claude-code');
+  const configDir = path.join(home, '.forge-agent-lens-for-claude-code');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });
   const socketPath = path.join(configDir, 'daemon.sock');
   const logFile = path.join(configDir, 'logs', 'daemon.log');
@@ -66,7 +66,7 @@ function runStatus(home: string, extraArgs: string[] = []): Promise<{ stdout: st
   });
 }
 
-suite('forge-claude-code status (pretty)', () => {
+suite('forge-agent-lens-for-claude-code status (pretty)', () => {
   test('happy path: settings configured, daemon not running, reports "Ready to trace"', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'pretty-happy-'));
     writeSettings(home);
@@ -74,7 +74,7 @@ suite('forge-claude-code status (pretty)', () => {
     const r = await runStatus(home);
     assert.equal(r.code, 0, `expected exit 0 on happy path; stdout=${r.stdout}`);
 
-    assert.match(r.stdout, /Forge Claude Code — ready to trace/);
+    assert.match(r.stdout, /Forge Agent Lens for Claude Code — ready to trace/);
     assert.match(r.stdout, /✓ Project\s+fake-entity\/fake-project\s+\(settings\.json\)/);
     assert.match(r.stdout, /✓ API key\s+.+\(settings\.json\)/);
     assert.match(r.stdout, /Daemon\s+○ not running/);
@@ -104,9 +104,9 @@ suite('forge-claude-code status (pretty)', () => {
     const r = await runStatus(home);
     assert.notEqual(r.code, 0, `expected non-zero exit when settings is missing; stdout=${r.stdout}`);
 
-    assert.match(r.stdout, /Forge Claude Code — not configured/);
-    assert.match(r.stdout, /No config at .+\.forge-claude-code\/settings\.json/);
-    assert.match(r.stdout, /→ forge-claude-code install/);
+    assert.match(r.stdout, /Forge Agent Lens for Claude Code — not configured/);
+    assert.match(r.stdout, /No config at .+\.forge-agent-lens-for-claude-code\/settings\.json/);
+    assert.match(r.stdout, /→ forge-agent-lens-for-claude-code install/);
     assert.doesNotMatch(r.stdout, /weave-claude-code/);
     // Other status sections should be suppressed: gather returns early before probing.
     assert.doesNotMatch(r.stdout, /Daemon/);
@@ -114,7 +114,7 @@ suite('forge-claude-code status (pretty)', () => {
 
   test('unreadable settings file: prints "Configuration: failed to read" and exits non-zero', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'pretty-unreadable-'));
-    const configDir = path.join(home, '.forge-claude-code');
+    const configDir = path.join(home, '.forge-agent-lens-for-claude-code');
     fs.mkdirSync(configDir, { recursive: true });
     fs.writeFileSync(path.join(configDir, 'settings.json'), '{ this is not valid JSON');
 
@@ -150,7 +150,7 @@ suite('forge-claude-code status (pretty)', () => {
   });
 });
 
-suite('forge-claude-code status --json', () => {
+suite('forge-agent-lens-for-claude-code status --json', () => {
   test('emits the documented schema with configured settings', async () => {
     const home = fs.mkdtempSync(path.join(scratch, 'json-configured-'));
     const { socketPath, logFile } = writeSettings(home);
@@ -239,9 +239,9 @@ const PLUGIN_SOURCE_CASES: ReadonlyArray<PluginSourceCase> = [
   {
     name: 'github source',
     setup: () => ({
-      seed: { source: 'github', repo: 'wandb/forge-claude-code', ref: 'v0.2.7' },
-      expectInPretty: 'github wandb/forge-claude-code @ v0.2.7',
-      expectJson: { type: 'github', repo: 'wandb/forge-claude-code', ref: 'v0.2.7' },
+      seed: { source: 'github', repo: 'coreweave/forge-agent-lens-for-claude-code', ref: 'v0.2.7' },
+      expectInPretty: 'github coreweave/forge-agent-lens-for-claude-code @ v0.2.7',
+      expectJson: { type: 'github', repo: 'coreweave/forge-agent-lens-for-claude-code', ref: 'v0.2.7' },
     }),
   },
   {
@@ -250,7 +250,7 @@ const PLUGIN_SOURCE_CASES: ReadonlyArray<PluginSourceCase> = [
       const dir = fs.mkdtempSync(path.join(scratchDir, 'dir-with-ver-'));
       fs.writeFileSync(
         path.join(dir, 'package.json'),
-        JSON.stringify({ name: '@coreweave/forge-claude-code', version: '1.2.3' }),
+        JSON.stringify({ name: '@coreweave/forge-agent-lens-for-claude-code', version: '1.2.3' }),
       );
       return {
         seed: { source: 'directory', path: dir },
@@ -282,7 +282,7 @@ const PLUGIN_SOURCE_CASES: ReadonlyArray<PluginSourceCase> = [
   },
 ];
 
-suite('forge-claude-code status (plugin source)', () => {
+suite('forge-agent-lens-for-claude-code status (plugin source)', () => {
   test('renders each source type in pretty and json', async () => {
     for (const c of PLUGIN_SOURCE_CASES) {
       const home = fs.mkdtempSync(path.join(scratch, `src-${c.name.replace(/\s+/g, '-')}-`));
@@ -307,7 +307,7 @@ suite('forge-claude-code status (plugin source)', () => {
 // over the config-hash control reply; status surfaces it so you can tell which
 // build is actually running (e.g. a linked local dev build). Uses the real
 // daemon harness — the identity reported is the daemon's, not the CLI's.
-suite('forge-claude-code status (running daemon identity)', () => {
+suite('forge-agent-lens-for-claude-code status (running daemon identity)', () => {
   test('reports the live daemon pid, version, and entry path', async () => {
     const daemon = await startTestDaemon();
     try {

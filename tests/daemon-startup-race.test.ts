@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // Herd safety. When several hooks fire at once and each cold-starts a daemon,
 // only one can bind the socket; the losers must yield cleanly. The old start()
@@ -32,7 +32,7 @@ const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 
 test('a herd of concurrent daemon starts crashes nobody and leaves exactly one listener', async () => {
   const home = fs.mkdtempSync(path.join(os.homedir(), '.forge-herd-'));
-  const configDir = path.join(home, '.forge-claude-code');
+  const configDir = path.join(home, '.forge-agent-lens-for-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });

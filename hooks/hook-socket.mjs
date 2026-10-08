@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // Invoked from hook-handler.sh as a thin replacement for `nc -U -w1`, so the
 // hook does not depend on netcat (often missing in minimal Linux containers).

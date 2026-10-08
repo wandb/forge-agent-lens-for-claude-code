@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, mkdirSync, mkdtempSync, cpSync, rmSync } from 'node:fs';
@@ -15,15 +15,13 @@ test('the Forge package ships a self-contained marketplace and matching CLI and 
   const pkg = readJson('../package.json');
   const marketplace = readJson('../.claude-plugin/marketplace.json');
   const plugin = readJson('../.claude-plugin/plugin.json');
-  assert.equal(pkg.name, '@coreweave/forge-claude-code');
+  assert.equal(pkg.name, '@coreweave/forge-agent-lens-for-claude-code');
   assert.equal(NPM_PACKAGE_NAME, pkg.name);
   // npm publishes scoped packages as restricted unless told otherwise.
   assert.equal(pkg.publishConfig?.access, 'public');
-  assert.deepEqual(pkg.bin, { 'forge-claude-code': 'dist/cli.js' });
+  assert.deepEqual(pkg.bin, { 'forge-agent-lens-for-claude-code': 'dist/cli.js' });
   assert.equal(marketplace.name, MARKETPLACE_NAME);
-  // Existing installs are registered as forge@forge-claude-code, so the
-  // marketplace keeps its name when the npm package name changes.
-  assert.equal(MARKETPLACE_NAME, 'forge-claude-code');
+  assert.equal(MARKETPLACE_NAME, 'forge-agent-lens-for-claude-code');
   assert.equal(plugin.name, 'forge');
   assert.equal(plugin.name, PLUGIN_NAME);
   assert.equal(marketplace.plugins[0].name, plugin.name);

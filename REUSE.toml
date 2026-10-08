@@ -1,7 +1,7 @@
 version = 1
-SPDX-PackageName = "forge-claude-code"
+SPDX-PackageName = "forge-agent-lens-for-claude-code"
 SPDX-PackageSupplier = "CoreWeave, Inc."
-SPDX-PackageDownloadLocation = "https://github.com/wandb/forge-claude-code"
+SPDX-PackageDownloadLocation = "https://github.com/coreweave/forge-agent-lens-for-claude-code"
 
 [[annotations]]
 path = "**"

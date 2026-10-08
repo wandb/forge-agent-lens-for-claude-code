@@ -1,11 +1,11 @@
 ---
 name: forge-config
-description: This skill should be used when the user wants to "configure Forge", "set Forge project", "change Forge project", "set wandb api key", "update Forge settings", "show Forge config", "change Forge configuration", "restart the Forge daemon", "apply Forge config changes", "restart Forge to pick up changes", or needs to read or update any Forge Claude Code plugin settings.
+description: This skill should be used when the user wants to "configure Forge", "set Forge project", "change Forge project", "set wandb api key", "update Forge settings", "show Forge config", "change Forge configuration", "restart the Forge daemon", "apply Forge config changes", "restart Forge to pick up changes", or needs to read or update any Forge Agent Lens for Claude Code plugin settings.
 ---
 
-# Forge Claude Code Plugin — Config
+# Forge Agent Lens for Claude Code Plugin — Config
 
-Read and update configuration for the Forge Claude Code plugin.
+Read and update configuration for the Forge Agent Lens for Claude Code plugin.
 
 ## Determine Intent
 
@@ -15,7 +15,7 @@ If the user invoked this skill with arguments (e.g., `/forge:forge-config set pr
 
 Run:
 ```bash
-forge-claude-code config show
+forge-agent-lens-for-claude-code config show
 ```
 
 This displays all settings and their sources (settings file vs environment variable).
@@ -24,7 +24,7 @@ This displays all settings and their sources (settings file vs environment varia
 
 To update a setting:
 ```bash
-forge-claude-code config set KEY VALUE
+forge-agent-lens-for-claude-code config set KEY VALUE
 ```
 
 Writable keys:
@@ -35,7 +35,7 @@ Writable keys:
 | `wandb_api_key` | string | `abc123...` |
 | `agent_name` | string | `my-team-bot` |
 | `debug` | `true` / `false` | `true` |
-| `daemon_socket` | file path | `~/.forge-claude-code/daemon.sock` |
+| `daemon_socket` | file path | `~/.forge-agent-lens-for-claude-code/daemon.sock` |
 
 **Validation notes:**
 - `project` must contain a `/` (entity/project format). Find your entity name at https://wandb.ai.
@@ -47,17 +47,17 @@ Writable keys:
 
 To read one setting:
 ```bash
-forge-claude-code config get KEY
+forge-agent-lens-for-claude-code config get KEY
 ```
 
 ## After Changes
 
-After setting `project`, `wandb_api_key`, or `agent_name`, run `forge-claude-code config show` to confirm the new value.
+After setting `project`, `wandb_api_key`, or `agent_name`, run `forge-agent-lens-for-claude-code config show` to confirm the new value.
 
 The daemon reads these once at startup and persists across Claude Code sessions, so a change is **not** picked up by a daemon that is already running. Apply it with:
 
 ```bash
-forge-claude-code restart
+forge-agent-lens-for-claude-code restart
 ```
 
 This stops the running daemon and starts a fresh one. (If none is running, the next Claude Code session starts one with the updated config.)
