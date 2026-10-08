@@ -1,11 +1,28 @@
-# Forge Agent Lens for Claude Code Plugin
+# forge-agent-lens-for-claude-code
 
-[![npm](https://img.shields.io/npm/v/@coreweave/forge-agent-lens-for-claude-code)](https://www.npmjs.com/package/@coreweave/forge-agent-lens-for-claude-code)
-[![CI](https://github.com/coreweave/forge-agent-lens-for-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/coreweave/forge-agent-lens-for-claude-code/actions/workflows/format-and-lint.yaml)
-[![license](https://img.shields.io/npm/l/@coreweave/forge-agent-lens-for-claude-code)](LICENSES/Apache-2.0.txt)
-[![node](https://img.shields.io/node/v/@coreweave/forge-agent-lens-for-claude-code)](package.json)
+[![npm version](https://img.shields.io/npm/v/@coreweave/forge-agent-lens-for-claude-code.svg)](https://www.npmjs.com/package/@coreweave/forge-agent-lens-for-claude-code)
+[![CI](https://github.com/coreweave/forge-agent-lens-for-claude-code/actions/workflows/ci.yml/badge.svg)](https://github.com/coreweave/forge-agent-lens-for-claude-code/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@coreweave/forge-agent-lens-for-claude-code.svg)](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/LICENSE)
+[![node](https://img.shields.io/node/v/@coreweave/forge-agent-lens-for-claude-code.svg)](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/package.json)
 
 Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is logged as a structured trace, with no code changes required.
+
+> [!WARNING]
+> Prompts, responses, and tool inputs and outputs are sent unredacted to W&B.
+> See [Data Disclosure](#data-disclosure) before installing.
+
+## Requirements
+
+- Node.js 18.19+ or 20.6+
+- Claude Code
+- A [W&B account](https://forge.coreweave.com/wandb) and project
+
+If you installed `@coreweave/forge-claude-code`, remove it first so sessions are not traced twice:
+
+```bash
+forge-claude-code uninstall
+npm uninstall -g @coreweave/forge-claude-code
+```
 
 ## Quick Start
 
@@ -273,14 +290,11 @@ forge-agent-lens-for-claude-code restart
 
 ---
 
-## Releasing
+## Contributing
 
-The release workflow publishes to npm. GitHub marketplace installs use a
-specific release tag rather than the repository default branch. New
-releases are cut via two GitHub Actions:
+See [CONTRIBUTING.md](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/CONTRIBUTING.md). Contributions require agreeing to the
+[CoreWeave CLA](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/CLA.md).
 
-1. **Version Bump** — dispatched with a version like `0.1.2`. Bumps the
-   version across the repo and creates and pushes the matching `v0.1.2` tag.
-2. **Publish Package** — dispatched with the tag (e.g. `v0.1.2`). Verifies
-   the tag is consistent and not already published, then builds and
-   publishes to npm.
+## License
+
+[Apache License 2.0](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/LICENSE)
