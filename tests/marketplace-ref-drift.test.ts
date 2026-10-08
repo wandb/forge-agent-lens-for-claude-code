@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // registerPlugin ref-drift: a CLI upgrade that changes MARKETPLACE_REF must
 // follow `plugin install` with `plugin update` to refresh the loaded plugin.

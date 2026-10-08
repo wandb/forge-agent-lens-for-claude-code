@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // Attribute-key constants and formatting helpers typed against the Forge SDK.
 
@@ -79,7 +79,7 @@ export const ATTR = {
  *  `agent_name` / `FORGE_CLAUDE_CODE_AGENT_NAME`. */
 export const DEFAULT_AGENT_NAME = 'claude-code';
 
-const INTEGRATION_NAME = 'forge-claude-code';
+const INTEGRATION_NAME = 'forge-agent-lens-for-claude-code';
 
 /** Free-form integration metadata prefix: new fields (e.g.
  *  `claude_code_app_version`) need no new attribute constant. */

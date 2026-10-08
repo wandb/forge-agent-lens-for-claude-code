@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 import * as fs from 'fs';
 import * as os from 'os';
@@ -115,23 +115,23 @@ export interface UninstallResult {
   pluginError?: string;
 }
 
-export const CONFIG_DIR = path.join(os.homedir(), '.forge-claude-code');
+export const CONFIG_DIR = path.join(os.homedir(), '.forge-agent-lens-for-claude-code');
 export const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 
 // Claude Code plugin marketplace coordinates. Pin installs to a release tag so
 // new users never consume whatever happens to be on the default branch at
 // install time.
-export const MARKETPLACE_REPO = 'wandb/forge-claude-code';
+export const MARKETPLACE_REPO = 'coreweave/forge-agent-lens-for-claude-code';
 export const MARKETPLACE_REF = `v${VERSION}`;
 export const MARKETPLACE_SOURCE = `${MARKETPLACE_REPO}#${MARKETPLACE_REF}`;
-export const MARKETPLACE_NAME = 'forge-claude-code';
+export const MARKETPLACE_NAME = 'forge-agent-lens-for-claude-code';
 export const PLUGIN_NAME = 'forge';
 
 // The npm package name shipped to the registry (matches package.json#name).
 // A distinct concept from MARKETPLACE_NAME: the marketplace name lives in
 // .claude-plugin/marketplace.json, the npm package name lives in package.json.
 // Kept separate so renaming one does not silently break the other.
-export const NPM_PACKAGE_NAME = '@coreweave/forge-claude-code';
+export const NPM_PACKAGE_NAME = '@coreweave/forge-agent-lens-for-claude-code';
 
 /**
  * Create (or recreate) the config directory, log directory, and settings.json.
@@ -167,7 +167,7 @@ export function createConfig(configDir: string): ConfigResult {
 }
 
 /**
- * Locate the npm-installed forge-claude-code package tree, or null if the
+ * Locate the npm-installed forge-agent-lens-for-claude-code package tree, or null if the
  * package isn't installed globally. Used by `InstallSource.Local` to register
  * the marketplace from disk instead of cloning from GitHub.
  *
@@ -316,7 +316,7 @@ export function registerPlugin(
       "'claude' CLI not found in PATH.",
       'Install Claude Code before running this command:',
       '  https://claude.ai/download',
-      'Then re-run: forge-claude-code install',
+      'Then re-run: forge-agent-lens-for-claude-code install',
     ].join('\n');
     appendToLog(logFile, 'ERROR', msg);
     throw new Error(msg);
@@ -338,7 +338,7 @@ export function registerPlugin(
   const refAfter = readRegisteredMarketplaceRef(MARKETPLACE_NAME);
   // Drift detection compares marketplace refs (version tags). Local sources
   // have no version tag (npm is the version-of-record), so skip the check and
-  // let the user re-run `npm install -g @coreweave/forge-claude-code` to upgrade.
+  // let the user re-run `npm install -g @coreweave/forge-agent-lens-for-claude-code` to upgrade.
   const refDrifted = source !== InstallSource.Local && refBefore !== null && refBefore !== refAfter;
 
   // Install plugin at user scope
@@ -459,7 +459,7 @@ export function unregisterPlugin(): UninstallResult {
 
 export function loadSettings(): Settings {
   if (!fs.existsSync(SETTINGS_FILE)) {
-    throw new Error(`Settings not found at ${SETTINGS_FILE}\nRun: forge-claude-code install`);
+    throw new Error(`Settings not found at ${SETTINGS_FILE}\nRun: forge-agent-lens-for-claude-code install`);
   }
   return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) as Settings;
 }

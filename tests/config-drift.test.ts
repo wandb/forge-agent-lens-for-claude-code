@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // Config-drift detection over the socket: `status` asks the live daemon for the
 // fingerprint of the config it loaded, and warns when settings.json now
@@ -32,7 +32,7 @@ before(() => { scratch = fs.mkdtempSync('/tmp/wcp-drift-'); });
 after(() => { fs.rmSync(scratch, { recursive: true, force: true }); });
 
 function writeSettings(home: string, overrides: Record<string, unknown> = {}): { settings: Record<string, unknown>; socketPath: string } {
-  const dir = path.join(home, '.forge-claude-code');
+  const dir = path.join(home, '.forge-agent-lens-for-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const socketPath = path.join(dir, 'daemon.sock');
   const settings = {

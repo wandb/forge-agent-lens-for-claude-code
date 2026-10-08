@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
-// Tests for `forge-claude-code restart`: stop a running daemon and start a
+// Tests for `forge-agent-lens-for-claude-code restart`: stop a running daemon and start a
 // fresh one, and refuse to spawn an unconfigured daemon.
 //
 // Sockets live under /tmp (macOS 104-char path cap); see stale-daemon-socket.test.ts.
@@ -39,7 +39,7 @@ function newHome(
 ): { home: string; socketPath: string } {
   const home = fs.mkdtempSync(`/tmp/wcp-${label}-`);
   homes.push(home);
-  const dir = path.join(home, '.forge-claude-code');
+  const dir = path.join(home, '.forge-agent-lens-for-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const socketPath = path.join(dir, 'daemon.sock');
   sockets.push(socketPath);
@@ -85,7 +85,7 @@ async function waitForState(socketPath: string, want: (s: SocketState) => boolea
   throw new Error(`waitForState timeout after ${timeoutMs}ms (last=${await probeUnixSocket(socketPath)})`);
 }
 
-suite('forge-claude-code restart', () => {
+suite('forge-agent-lens-for-claude-code restart', () => {
   test('refuses to start a daemon and exits non-zero when unconfigured', async () => {
     const { home, socketPath } = newHome('restart-unconfigured', {});
     const r = await runRestart(home);

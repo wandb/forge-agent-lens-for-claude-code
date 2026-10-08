@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // End-to-end tests for the daemon socket lifecycle. Five layers, one file:
 //
@@ -29,7 +29,7 @@ const REPO_ROOT = path.resolve(HERE, '..');
 const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
 const HOOK_SCRIPT = path.join(REPO_ROOT, 'hooks', 'hook-handler.sh');
 const HOOK_SOCKET_MJS = path.join(REPO_ROOT, 'hooks', 'hook-socket.mjs');
-const FAKE_BIN_DIR = path.join(HERE, 'fixtures', 'fake-forge-claude-code-bin');
+const FAKE_BIN_DIR = path.join(HERE, 'fixtures', 'fake-forge-agent-lens-for-claude-code-bin');
 const BIND_FIXTURE = new URL('./fixtures/bind-socket-child.mjs', import.meta.url);
 
 let scratch: string;
@@ -47,7 +47,7 @@ interface Workspace {
 
 function newWorkspace(label: string): Workspace {
   const home = fs.mkdtempSync(path.join(scratch, `${label}-`));
-  const configDir = path.join(home, '.forge-claude-code');
+  const configDir = path.join(home, '.forge-agent-lens-for-claude-code');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });
   const socketPath = path.join(configDir, 'daemon.sock');
   const settings = {
@@ -229,7 +229,7 @@ suite('hook-socket.mjs send', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-suite('forge-claude-code status', () => {
+suite('forge-agent-lens-for-claude-code status', () => {
   function runStatus(home: string): Promise<{ stdout: string; code: number | null }> {
     return new Promise((resolve, reject) => {
       const child = spawn(
@@ -258,7 +258,7 @@ suite('hook-handler.sh', () => {
   before(() => {
     // The fake binary loses its executable bit during git clone on some setups;
     // re-stamp it so the integration tests can actually invoke it.
-    fs.chmodSync(path.join(FAKE_BIN_DIR, 'forge-claude-code'), 0o755);
+    fs.chmodSync(path.join(FAKE_BIN_DIR, 'forge-agent-lens-for-claude-code'), 0o755);
   });
 
   function runHook(w: Workspace, payload: string): Promise<{ code: number | null; stderr: string }> {

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // The daemon exports OTLP spans to the Weave trace server, not the wandb API
 // host. SaaS `api.wandb.ai` has no OTLP route, so setting `WANDB_BASE_URL` to

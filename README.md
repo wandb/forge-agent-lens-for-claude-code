@@ -1,39 +1,56 @@
-# Forge Claude Code Plugin
+# forge-agent-lens-for-claude-code
 
-[![npm](https://img.shields.io/npm/v/@coreweave/forge-claude-code)](https://www.npmjs.com/package/@coreweave/forge-claude-code)
-[![CI](https://github.com/wandb/forge-claude-code/actions/workflows/format-and-lint.yaml/badge.svg)](https://github.com/wandb/forge-claude-code/actions/workflows/format-and-lint.yaml)
-[![license](https://img.shields.io/npm/l/@coreweave/forge-claude-code)](LICENSES/Apache-2.0.txt)
-[![node](https://img.shields.io/node/v/@coreweave/forge-claude-code)](package.json)
+[![npm version](https://img.shields.io/npm/v/@coreweave/forge-agent-lens-for-claude-code.svg)](https://www.npmjs.com/package/@coreweave/forge-agent-lens-for-claude-code)
+[![CI](https://github.com/coreweave/forge-agent-lens-for-claude-code/actions/workflows/ci.yml/badge.svg)](https://github.com/coreweave/forge-agent-lens-for-claude-code/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@coreweave/forge-agent-lens-for-claude-code.svg)](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/LICENSE)
+[![node](https://img.shields.io/node/v/@coreweave/forge-agent-lens-for-claude-code.svg)](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/package.json)
 
 Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging. Every session, turn, tool call, and subagent is logged as a structured trace, with no code changes required.
+
+> [!WARNING]
+> Prompts, responses, and tool inputs and outputs are sent unredacted to W&B.
+> See [Data Disclosure](#data-disclosure) before installing.
+
+## Requirements
+
+- Node.js 18.19+ or 20.6+
+- Claude Code
+- A [W&B account](https://forge.coreweave.com/wandb) and project
+
+If you installed `@coreweave/forge-claude-code`, remove it first so sessions are not traced twice:
+
+```bash
+forge-claude-code uninstall
+npm uninstall -g @coreweave/forge-claude-code
+```
 
 ## Quick Start
 
 **1. Install the CLI**
 
 ```bash
-npm install -g @coreweave/forge-claude-code
+npm install -g @coreweave/forge-agent-lens-for-claude-code
 ```
 
 **2. Run the installer**
 
 ```bash
-forge-claude-code install
+forge-agent-lens-for-claude-code install
 ```
 
 This will:
-- Create `~/.forge-claude-code/settings.json`
+- Create `~/.forge-agent-lens-for-claude-code/settings.json`
 - Register the plugin in Claude Code
 - Prompt for your Forge project (`entity/project`) and W&B API key if not already set
 
-Your W&B API key is available at https://wandb.ai/authorize.
+Your W&B API key is available at https://forge.coreweave.com/wandb/authorize.
 
 For CI, bootstrap scripts, or other automated systems, you can skip prompts:
 
 ```bash
 FORGE_TRACE_PROJECT=my-entity/my-project \
 WANDB_API_KEY=<your-api-key> \
-forge-claude-code install --non-interactive
+forge-agent-lens-for-claude-code install --non-interactive
 ```
 
 In non-interactive mode, the installer still creates config, registers the Claude marketplace, and installs the plugin. It does not prompt for missing values. Instead, it:
@@ -41,14 +58,14 @@ In non-interactive mode, the installer still creates config, registers the Claud
 - Warns and continues if either value is missing
 - Leaves environment-provided values in the environment rather than writing them into `settings.json`
 
-By default, `claude plugin marketplace add` clones `wandb/forge-claude-code` from GitHub. In CI or container sandboxes without git/SSH access to GitHub, pass `--source=local` to register the marketplace from the npm-installed tree on disk instead:
+By default, `claude plugin marketplace add` clones `coreweave/forge-agent-lens-for-claude-code` from GitHub. In CI or container sandboxes without git/SSH access to GitHub, pass `--source=local` to register the marketplace from the npm-installed tree on disk instead:
 
 ```bash
-npm install -g @coreweave/forge-claude-code
-forge-claude-code install --non-interactive --source=local
+npm install -g @coreweave/forge-agent-lens-for-claude-code
+forge-agent-lens-for-claude-code install --non-interactive --source=local
 ```
 
-`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/@coreweave/forge-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
+`--source=local` requires the package to be installed globally via npm first (it reads from `$(npm root -g)/@coreweave/forge-agent-lens-for-claude-code`). Upgrades follow the npm cadence; the marketplace ref drift check is skipped for local sources.
 
 **3. Restart or launch Claude Code**
 
@@ -64,7 +81,7 @@ Otherwise, launch Claude Code from any folder:
 claude
 ```
 
-Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single Claude Code project. To stop tracing, run `forge-claude-code uninstall`.
+Sessions are traced automatically from this point, across **all** Claude Code sessions on this machine. Tracing is not scoped to a single Claude Code project. To stop tracing, run `forge-agent-lens-for-claude-code uninstall`.
 
 Open your Forge project in CoreWeave Forge AgentLens to see them.
 
@@ -97,19 +114,19 @@ or compliance requirements, do not install or enable this plugin yet.
 
 ```bash
 # Show all current settings (env-var overrides are flagged in the output)
-forge-claude-code config show
+forge-agent-lens-for-claude-code config show
 
 # Read a single setting (resolves env-var overrides)
-forge-claude-code config get project
+forge-agent-lens-for-claude-code config get project
 
 # Set your Forge project
-forge-claude-code config set project my-entity/my-project
+forge-agent-lens-for-claude-code config set project my-entity/my-project
 
 # Set your W&B API key
-forge-claude-code config set wandb_api_key <your-api-key>
+forge-agent-lens-for-claude-code config set wandb_api_key <your-api-key>
 
 # (Optional) Customize the agent name shown in CoreWeave Forge AgentLens (default: claude-code)
-forge-claude-code config set agent_name my-team-bot
+forge-agent-lens-for-claude-code config set agent_name my-team-bot
 ```
 
 You can also set these via environment variables — they take precedence over the settings file:
@@ -120,14 +137,14 @@ export WANDB_API_KEY=<your-api-key>
 export FORGE_CLAUDE_CODE_AGENT_NAME=my-team-bot
 ```
 
-This is especially useful with `forge-claude-code install --non-interactive`, where the installer checks these variables instead of prompting.
+This is especially useful with `forge-agent-lens-for-claude-code install --non-interactive`, where the installer checks these variables instead of prompting.
 
 ---
 
 ## Check Status
 
 ```bash
-forge-claude-code status
+forge-agent-lens-for-claude-code status
 ```
 
 Each line shows `✓` (OK), `✗` (action needed), or `-` (not yet active but not an error).
@@ -135,17 +152,17 @@ Each line shows `✓` (OK), `✗` (action needed), or `-` (not yet active but no
 If sessions are not appearing in CoreWeave Forge AgentLens, check the daemon log for errors:
 
 ```bash
-forge-claude-code logs              # last 50 lines (default)
-forge-claude-code logs --tail 200   # last N lines
-forge-claude-code logs --follow     # tail -f
+forge-agent-lens-for-claude-code logs              # last 50 lines (default)
+forge-agent-lens-for-claude-code logs --tail 200   # last N lines
+forge-agent-lens-for-claude-code logs --follow     # tail -f
 ```
 
-The log file is also directly at `~/.forge-claude-code/logs/daemon.log`.
+The log file is also directly at `~/.forge-agent-lens-for-claude-code/logs/daemon.log`.
 
 For more verbose daemon output while diagnosing an issue, enable debug mode:
 
 ```bash
-forge-claude-code config set debug true
+forge-agent-lens-for-claude-code config set debug true
 # or, just for the current shell session:
 export FORGE_CLAUDE_CODE_DEBUG=1
 ```
@@ -166,7 +183,7 @@ Walks through the full installation and configuration flow interactively. Use th
 
 ### `/forge:forge-status`
 
-Checks the current plugin status and explains any issues. Equivalent to running `forge-claude-code status` but Claude interprets the output and tells you exactly what to fix.
+Checks the current plugin status and explains any issues. Equivalent to running `forge-agent-lens-for-claude-code status` but Claude interprets the output and tells you exactly what to fix.
 
 ```
 /forge:forge-status
@@ -199,7 +216,7 @@ every span in the turn.
 
 Spans are built with the [CoreWeave Forge SDK](https://www.npmjs.com/package/@coreweave/forge-sdk).
 Every span carries the `forge.integration.*` identity of this plugin; the
-OTLP resource reports `service.name = forge-claude-code` and
+OTLP resource reports `service.name = forge-agent-lens-for-claude-code` and
 `wandb.sdk.name = forge`.
 
 ```
@@ -243,7 +260,7 @@ not available today.
 ## Uninstall
 
 ```bash
-forge-claude-code uninstall
+forge-agent-lens-for-claude-code uninstall
 ```
 
 Pass `--keep-logs` to preserve the log directory.
@@ -268,19 +285,16 @@ The daemon reads these variables once, at startup. If it is already running, set
 
 ```bash
 export WANDB_BASE_URL=https://your-instance.wandb.io
-forge-claude-code restart
+forge-agent-lens-for-claude-code restart
 ```
 
 ---
 
-## Releasing
+## Contributing
 
-The release workflow publishes to npm. GitHub marketplace installs use a
-specific release tag rather than the repository default branch. New
-releases are cut via two GitHub Actions:
+See [CONTRIBUTING.md](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/CONTRIBUTING.md). Contributions require agreeing to the
+[CoreWeave CLA](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/CLA.md).
 
-1. **Version Bump** — dispatched with a version like `0.1.2`. Bumps the
-   version across the repo and creates and pushes the matching `v0.1.2` tag.
-2. **Publish Package** — dispatched with the tag (e.g. `v0.1.2`). Verifies
-   the tag is consistent and not already published, then builds and
-   publishes to npm.
+## License
+
+[Apache License 2.0](https://github.com/coreweave/forge-agent-lens-for-claude-code/blob/main/LICENSE)

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 import * as fs from 'node:fs';
 import * as net from 'node:net';
@@ -26,7 +26,7 @@ const CLI = path.join(REPO_ROOT, 'src', 'cli.ts');
  */
 export function seedConfigHome(label: string): { home: string; settingsFile: string } {
   const home = fs.mkdtempSync(`/tmp/wcp-${label}-`);
-  const dir = path.join(home, '.forge-claude-code');
+  const dir = path.join(home, '.forge-agent-lens-for-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const settingsFile = path.join(dir, 'settings.json');
   fs.writeFileSync(settingsFile, JSON.stringify({
@@ -75,7 +75,7 @@ export function readFakeCalls(home: string): string[] {
 
 /**
  * Seed `$HOME/.claude/plugins/known_marketplaces.json` with the given source
- * spec for the forge-claude-code marketplace. Mirrors what the real `claude`
+ * spec for the forge-agent-lens-for-claude-code marketplace. Mirrors what the real `claude`
  * CLI writes after `plugin marketplace add` (verified empirically). Tests use
  * this to put the registry in a known state before invoking code paths that
  * read it.
@@ -275,7 +275,7 @@ export async function startTestDaemon(
   opts: { settings?: Record<string, unknown>; env?: Record<string, string> } = {},
 ): Promise<TestDaemon> {
   const home = fs.mkdtempSync(path.join(os.homedir(), '.forge-daemontest-'));
-  const configDir = path.join(home, '.forge-claude-code');
+  const configDir = path.join(home, '.forge-agent-lens-for-claude-code');
   const socketPath = path.join(configDir, 'daemon.sock');
   const logPath = path.join(configDir, 'logs', 'daemon.log');
   fs.mkdirSync(path.join(configDir, 'logs'), { recursive: true });

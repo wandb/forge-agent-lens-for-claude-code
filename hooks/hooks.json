@@ -1,5 +1,5 @@
 {
-  "description": "Forward all Claude Code lifecycle events to the Forge Claude Code daemon",
+  "description": "Forward all Claude Code lifecycle events to the Forge Agent Lens for Claude Code daemon",
   "hooks": {
     "SessionStart": [
       {

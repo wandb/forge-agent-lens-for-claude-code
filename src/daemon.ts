@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 import * as fs from 'fs';
 import * as net from 'net';
@@ -88,7 +88,7 @@ export class Daemon {
         );
         this.log(
           'INFO',
-          `View traces: https://wandb.ai/${this.config.project}/weave/agents`,
+          `View traces: https://forge.coreweave.com/wandb/${this.config.project}/weave/agents`,
         );
       } catch (err) {
         this.log(
@@ -237,7 +237,7 @@ export class Daemon {
     await tracing.init(this.config.project, {
       apiKey: this.config.apiKey,
       baseUrl: this.config.baseUrl,
-      serviceName: 'forge-claude-code',
+      serviceName: 'forge-agent-lens-for-claude-code',
     });
     this.tracingEnabled = true;
   }

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // Sockets live under /tmp (macOS 104-char path cap); see stale-daemon-socket.test.ts.
 
@@ -39,7 +39,7 @@ before(() => { scratch = fs.mkdtempSync('/tmp/wcp-export-'); });
 after(() => { fs.rmSync(scratch, { recursive: true, force: true }); });
 
 function writeSettings(home: string): { socketPath: string } {
-  const dir = path.join(home, '.forge-claude-code');
+  const dir = path.join(home, '.forge-agent-lens-for-claude-code');
   fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
   const socketPath = path.join(dir, 'daemon.sock');
   fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({

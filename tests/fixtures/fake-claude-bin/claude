@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // Stand-in for `claude` CLI used by registerPlugin tests. Tracks marketplace and
 // plugin state under $HOME/.claude/ and mimics the real CLI's behavior for the

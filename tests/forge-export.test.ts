@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -49,7 +49,7 @@ test('the daemon exports Forge spans to the configured OTLP endpoint', async () 
       assert.equal(request.headers.project_id, 'test/test');
       assert.ok(request.body.includes(Buffer.from('wandb.sdk.name')));
       assert.ok(request.body.includes(Buffer.from('forge.integration.name')));
-      assert.ok(request.body.includes(Buffer.from('forge-claude-code')));
+      assert.ok(request.body.includes(Buffer.from('forge-agent-lens-for-claude-code')));
       assert.ok(!request.body.includes(Buffer.from('weave.integration')));
       assert.ok(!request.body.includes(Buffer.from('weave.claude_code')));
       assert.ok(!request.body.includes(Buffer.from('weave.source')));

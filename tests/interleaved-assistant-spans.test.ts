@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 CoreWeave, Inc.
 // SPDX-License-Identifier: Apache-2.0
-// SPDX-PackageName: forge-claude-code
+// SPDX-PackageName: forge-agent-lens-for-claude-code
 
 // Pins `contentBlocksToParts`'s block-to-part mapping and order; end-to-end
 // interleave coverage lives in interleave-handlers / interleave-split-lines.

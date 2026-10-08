@@ -3,15 +3,15 @@ name: forge-status
 description: This skill should be used when the user wants to "check Forge status", "verify the Forge plugin is running", "see if Forge is set up correctly", "check Forge configuration", "is Forge working", "Forge is running an older config", "the daemon is on an old config", or needs to diagnose why Claude Code sessions are not appearing in CoreWeave Forge AgentLens.
 ---
 
-# Forge Claude Code Plugin — Status
+# Forge Agent Lens for Claude Code Plugin — Status
 
-Check the current installation and configuration status of the Forge Claude Code plugin.
+Check the current installation and configuration status of the Forge Agent Lens for Claude Code plugin.
 
 ## Run Status
 
 Run:
 ```bash
-forge-claude-code status
+forge-agent-lens-for-claude-code status
 ```
 
 ## Interpret Results
@@ -27,9 +27,9 @@ Each status line indicates one of four states:
 | Symptom | Fix |
 |---------|-----|
 | `✗ Configuration: not found` | Run `/forge:forge-install` to complete installation |
-| `✗ CLI: not found in PATH` | Run `npm install -g @coreweave/forge-claude-code` in a terminal |
+| `✗ CLI: not found in PATH` | Run `npm install -g @coreweave/forge-agent-lens-for-claude-code` in a terminal |
 | `✗ Project: not set` | Run `/forge:forge-config set project ENTITY/PROJECT` |
-| `⚠ Daemon is running an older config` | A setting changed since the daemon started, so the live daemon is using stale config. Run `forge-claude-code restart` to apply the new settings. |
+| `⚠ Daemon is running an older config` | A setting changed since the daemon started, so the live daemon is using stale config. Run `forge-agent-lens-for-claude-code restart` to apply the new settings. |
 | `- Daemon socket: not running` | Normal if no Claude Code session is active; daemon starts automatically on next hook event |
 | `- Log file: not created yet` | Normal before first session; no action needed |
 

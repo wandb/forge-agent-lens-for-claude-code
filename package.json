@@ -1,10 +1,10 @@
 {
-  "name": "@coreweave/forge-claude-code",
+  "name": "@coreweave/forge-agent-lens-for-claude-code",
   "version": "0.3.0",
   "description": "Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging",
   "type": "module",
   "bin": {
-    "forge-claude-code": "dist/cli.js"
+    "forge-agent-lens-for-claude-code": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc && node scripts/build/copy-version-module.mjs",
@@ -34,15 +34,17 @@
     "hooks/",
     "skills/",
     ".claude-plugin/",
+    "LICENSE",
     "LICENSES/",
-    "NOTICE"
+    "NOTICE",
+    "REUSE.toml"
   ],
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wandb/forge-claude-code.git"
+    "url": "git+https://github.com/coreweave/forge-agent-lens-for-claude-code.git"
   },
   "license": "Apache-2.0"
 }
