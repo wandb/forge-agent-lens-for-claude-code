@@ -45,14 +45,6 @@ This will:
 
 Your W&B API key is available at https://forge.coreweave.com/wandb/authorize.
 
-To register the plugin from inside Claude Code (2.1.275 or later) instead:
-
-```
-/plugin install forge --marketplace coreweave/forge-agent-lens-for-claude-code
-```
-
-The hooks stay inactive until the CLI from step 1 is installed and `project` and `wandb_api_key` are set (see [Configuration](#configuration)).
-
 For CI, bootstrap scripts, or other automated systems, you can skip prompts:
 
 ```bash
