@@ -1,5 +1,13 @@
 {
   "name": "forge",
   "version": "0.3.0",
-  "description": "Trace Claude Code sessions with CoreWeave Forge AgentLens for observability and debugging"
+  "description": "Trace every Claude Code session on this machine with CoreWeave Forge AgentLens.",
+  "author": {
+    "name": "CoreWeave",
+    "url": "https://github.com/coreweave"
+  },
+  "homepage": "https://docs.coreweave.com/products/wandb/weave/guides/integrations/agents/claude-code-harness",
+  "repository": "https://github.com/coreweave/forge-agent-lens-for-claude-code",
+  "license": "Apache-2.0",
+  "keywords": ["observability", "tracing", "opentelemetry", "coreweave", "forge", "wandb"]
 }
