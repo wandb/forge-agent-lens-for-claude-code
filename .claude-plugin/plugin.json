@@ -1,7 +1,7 @@
 {
   "name": "forge",
   "version": "0.3.0",
-  "description": "Trace every Claude Code session on this machine with CoreWeave Forge AgentLens. Prompts, responses, and tool inputs and outputs are sent to W&B unredacted.",
+  "description": "Trace every Claude Code session on this machine with CoreWeave Forge AgentLens.",
   "author": {
     "name": "CoreWeave",
     "url": "https://github.com/coreweave"
